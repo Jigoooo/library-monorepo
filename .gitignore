@@ -1,5 +1,6 @@
 .omc/
 node_modules/
 coverage/
+dist/
 
 package/api-client/node_modules/
