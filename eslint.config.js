@@ -33,7 +33,12 @@ export default [
     },
   },
   {
-    files: ['**/tsup.config.ts', '**/eslint.config.js', '**/prettier.config.js'],
+    files: [
+      '**/vitest.config.ts',
+      '**/tsup.config.ts',
+      '**/eslint.config.js',
+      '**/prettier.config.js',
+    ],
     languageOptions: {
       parserOptions: {
         projectService: false,

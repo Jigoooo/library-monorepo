@@ -76,10 +76,35 @@ export interface ApiConfig {
 let _config: ApiConfig | null = null;
 let _axiosInstance: import('axios').AxiosInstance | null = null;
 
+/**
+ * API 클라이언트 설정을 저장합니다.
+ * 내부적으로 싱글턴 패턴으로 관리되며, 일반적으로 initApi()에서 자동 호출됩니다.
+ *
+ * @param config - API 설정 객체 (baseURL, 토큰 함수, 콜백 등)
+ * @throws 없음 (항상 성공)
+ *
+ * @example
+ * setApiConfig({
+ *   baseURL: 'https://api.example.com',
+ *   getToken: () => localStorage.getItem('token'),
+ *   transformResponse: 'camelCase',
+ * });
+ */
 export function setApiConfig(config: ApiConfig): void {
   _config = config;
 }
 
+/**
+ * 저장된 API 설정을 반환합니다.
+ * initApi()를 호출하지 않으면 에러가 발생합니다.
+ *
+ * @returns 저장된 ApiConfig 객체
+ * @throws Error - initApi()가 호출되지 않은 경우
+ *
+ * @example
+ * const config = getApiConfig();
+ * console.log(config.baseURL); // 'https://api.example.com'
+ */
 export function getApiConfig(): ApiConfig {
   if (!_config) {
     throw new Error('@jigoooo/api-client: initApi()를 먼저 호출하세요.');
@@ -87,10 +112,31 @@ export function getApiConfig(): ApiConfig {
   return _config;
 }
 
+/**
+ * Axios 인스턴스를 저장합니다.
+ * 내부적으로 싱글턴 패턴으로 관리되며, 일반적으로 initApi()에서 자동 호출됩니다.
+ *
+ * @param instance - Axios 인스턴스
+ *
+ * @example
+ * const axiosInstance = axios.create({ baseURL: 'https://api.example.com' });
+ * setAxiosInstance(axiosInstance);
+ */
 export function setAxiosInstance(instance: import('axios').AxiosInstance): void {
   _axiosInstance = instance;
 }
 
+/**
+ * 저장된 Axios 인스턴스를 반환합니다.
+ * initApi()를 호출하지 않으면 에러가 발생합니다.
+ *
+ * @returns 저장된 Axios 인스턴스
+ * @throws Error - initApi()가 호출되지 않은 경우
+ *
+ * @example
+ * const instance = getAxiosInstance();
+ * instance.get('/users');
+ */
 export function getAxiosInstance(): import('axios').AxiosInstance {
   if (!_axiosInstance) {
     throw new Error('@jigoooo/api-client: initApi()를 먼저 호출하세요.');
@@ -98,6 +144,19 @@ export function getAxiosInstance(): import('axios').AxiosInstance {
   return _axiosInstance;
 }
 
+/**
+ * API 설정 여부를 확인합니다.
+ * initApi()가 호출되었는지 검사하는 헬퍼 함수입니다.
+ *
+ * @returns true - initApi() 호출됨, false - 미호출
+ *
+ * @example
+ * if (isApiConfigured()) {
+ *   const api = getApiConfig();
+ * } else {
+ *   console.log('initApi()를 먼저 호출하세요');
+ * }
+ */
 export function isApiConfigured(): boolean {
   return _config !== null;
 }

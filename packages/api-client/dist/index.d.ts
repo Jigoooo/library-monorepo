@@ -57,6 +57,25 @@ interface ApiConfig {
   axiosOptions?: Omit<AxiosRequestConfig, 'baseURL'>;
 }
 
+/**
+ * API 클라이언트를 초기화합니다.
+ * 앱 시작 시 가장 먼저 호출해야 합니다.
+ *
+ * @param config API 설정 객체 (baseURL, 토큰 함수, 재시도 설정 등)
+ *
+ * @example
+ * initApi({
+ *   baseURL: 'https://api.example.com',
+ *   getToken: () => localStorage.getItem('accessToken'),
+ *   refreshTokenFn: async () => {
+ *     const res = await fetch('/auth/refresh', { method: 'POST' });
+ *     const data = await res.json();
+ *     localStorage.setItem('accessToken', data.accessToken);
+ *     return data.accessToken;
+ *   },
+ *   transformResponse: 'camelCase',
+ * });
+ */
 declare function initApi(config: ApiConfig): void;
 
 /**
@@ -67,15 +86,86 @@ declare function initApi(config: ApiConfig): void;
  */
 declare const customedAxios: axios.AxiosInstance;
 
+/**
+ * HTTP 요청 메서드 인터페이스
+ * 모든 응답은 apiRequest()를 통해 transformResponse 처리됩니다.
+ */
 interface ApiInstance {
+  /**
+   * GET 요청
+   * @param url 요청 경로
+   * @param config Axios 설정
+   * @returns 변환된 응답 데이터
+   */
   get(url: string, config?: AxiosRequestConfig): Promise<unknown>;
+  /**
+   * POST 요청
+   * @param url 요청 경로
+   * @param data 요청 바디
+   * @param config Axios 설정
+   * @returns 변환된 응답 데이터
+   */
   post(url: string, data?: unknown, config?: AxiosRequestConfig): Promise<unknown>;
+  /**
+   * PUT 요청
+   * @param url 요청 경로
+   * @param data 요청 바디
+   * @param config Axios 설정
+   * @returns 변환된 응답 데이터
+   */
   put(url: string, data?: unknown, config?: AxiosRequestConfig): Promise<unknown>;
+  /**
+   * PATCH 요청
+   * @param url 요청 경로
+   * @param data 요청 바디
+   * @param config Axios 설정
+   * @returns 변환된 응답 데이터
+   */
   patch(url: string, data?: unknown, config?: AxiosRequestConfig): Promise<unknown>;
+  /**
+   * DELETE 요청
+   * @param url 요청 경로
+   * @param config Axios 설정
+   * @returns 변환된 응답 데이터
+   */
   delete(url: string, config?: AxiosRequestConfig): Promise<unknown>;
 }
+/**
+ * 기본 HTTP 클라이언트 인스턴스
+ *
+ * 모든 요청에는 다음이 자동으로 적용됩니다:
+ * - Authorization 헤더에 Bearer 토큰 주입
+ * - 401 에러 시 토큰 자동 갱신 및 재요청
+ * - 응답 데이터 transformResponse 처리
+ *
+ * @example
+ * // GET
+ * const users = await api.get('/users');
+ *
+ * // POST
+ * const newUser = await api.post('/users', { name: 'John', email: 'john@example.com' });
+ *
+ * // DELETE
+ * await api.delete('/users/1');
+ */
 declare const api: ApiInstance;
 
+/**
+ * Axios 응답을 처리하고 transformResponse를 적용합니다.
+ * 일반적으로 api.get/post/put/patch/delete에서 내부적으로 호출됩니다.
+ *
+ * transformResponse 적용 순서:
+ * 1. 'camelCase' → snake_case를 camelCase로 변환
+ * 2. 함수 → 커스텀 변환 함수 실행
+ * 3. false/undefined → 원본 데이터 반환
+ *
+ * @param request Axios Promise (예: customedAxios.get())
+ * @returns ApiConfig의 transformResponse가 적용된 데이터
+ *
+ * @example
+ * // api.get 내부에서 자동으로 사용됨
+ * const data = await apiRequest(customedAxios.get('/users'));
+ */
 declare function apiRequest(request: Promise<any>): Promise<unknown>;
 
 export { type ApiConfig, api, apiRequest, customedAxios, initApi };
