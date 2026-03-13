@@ -51,7 +51,7 @@ export interface ApiConfig {
    */
   transformResponse?: false | 'camelCase' | ((data: unknown) => unknown);
 
-  /** 요청 전 (토큰 주입 이전) 실행. config 수정 가능 */
+  /** 요청 전 (토큰 주입 이후) 실행. config 수정 가능 */
   onRequest?: (
     config: InternalAxiosRequestConfig,
   ) => InternalAxiosRequestConfig | Promise<InternalAxiosRequestConfig>;

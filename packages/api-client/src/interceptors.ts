@@ -190,12 +190,21 @@ const onErrorRequest = async (error: AxiosError<AxiosRequestConfig>) => {
  * @param response - Axios 응답 객체
  * @returns 변경되지 않은 응답 객체
  */
-const onResponse = (response: AxiosResponse): AxiosResponse => {
+const onResponse = async (response: AxiosResponse): Promise<AxiosResponse> => {
   const { method, url } = response.config;
   const { status } = response;
 
   // ── 내장: 로깅
   logOnDev(`onResponse [API] ${method?.toUpperCase()} ${url} | Request ${status}`);
+
+  try {
+    const { onResponse: userHook } = getApiConfig();
+    if (userHook) {
+      return await userHook(response);
+    }
+  } catch {
+    // 사용자 훅이 없거나 에러 발생시 무시
+  }
 
   return response;
 };

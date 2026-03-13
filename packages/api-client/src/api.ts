@@ -7,7 +7,7 @@ import { customedAxios } from './customed-axios';
  * HTTP 요청 메서드 인터페이스
  * 모든 응답은 apiRequest()를 통해 transformResponse 처리됩니다.
  */
-interface ApiInstance {
+export interface ApiInstance {
   /**
    * GET 요청
    * @param url 요청 경로
