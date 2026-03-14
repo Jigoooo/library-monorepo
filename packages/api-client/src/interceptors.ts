@@ -36,6 +36,8 @@ const processQueue = (error: Error | null, token: string | null = null) => {
       prom.reject(error);
     } else if (token) {
       prom.resolve(token);
+    } else {
+      prom.reject(new Error('Token refresh inconclusive'));
     }
   });
 
@@ -114,11 +116,11 @@ const onRequest = async (config: AxiosRequestConfig): Promise<InternalAxiosReque
     config.params = params;
   }
 
-  // ── 내장: 선제적 토큰 만료 확인 후 refresh
-  await injectToken(headers);
-
-  // ── 내장: 토큰 주입
+  // ── 내장: 현재 토큰 주입 (먼저 적용)
   applyToken(headers);
+
+  // ── 내장: 선제적 토큰 만료 확인 후 refresh (만료 시 새 토큰으로 덮어씀)
+  await injectToken(headers);
 
   let fullUrl = `${baseURL || ''}${url}`;
   if (method?.toUpperCase() === 'GET' && config.params) {
@@ -289,7 +291,7 @@ const logAxiosErrorShort = (error: AxiosError) => {
     responseData: getResponseData(error.response?.data),
   };
 
-  console.log('AxiosError (short):', safeError);
+  logOnDev('AxiosError (short):', safeError);
 };
 
 /**
@@ -338,7 +340,7 @@ const attemptTokenRefresh = async (
 
   while (attempt < maxRetries) {
     try {
-      if (retryDelay > 0) await delay(retryDelay);
+      if (attempt > 0 && retryDelay > 0) await delay(retryDelay);
       if (!refreshTokenFn) throw new Error('No refreshTokenFn');
 
       return await refreshTokenFn();
@@ -402,6 +404,9 @@ const handleTokenRefresh = async (error: AxiosError): Promise<AxiosResponse | vo
       processQueue(null, newToken);
       if (error.config) error.config.headers.Authorization = `Bearer ${newToken}`;
       return axios(error.config);
+    } catch (refreshError) {
+      processQueue(refreshError as Error, null);
+      throw refreshError;
     } finally {
       isRefreshing = false;
     }
