@@ -72,8 +72,11 @@ export interface ApiInstance {
  */
 export const api: ApiInstance = {
   get: (url, config) => apiRequest(customedAxios.get(url, config)),
-  post: (url, data, config) => apiRequest(customedAxios.post(url, transformRequestData(data), config)),
-  put: (url, data, config) => apiRequest(customedAxios.put(url, transformRequestData(data), config)),
-  patch: (url, data, config) => apiRequest(customedAxios.patch(url, transformRequestData(data), config)),
+  post: (url, data, config) =>
+    apiRequest(customedAxios.post(url, transformRequestData(data), config)),
+  put: (url, data, config) =>
+    apiRequest(customedAxios.put(url, transformRequestData(data), config)),
+  patch: (url, data, config) =>
+    apiRequest(customedAxios.patch(url, transformRequestData(data), config)),
   delete: (url, config) => apiRequest(customedAxios.delete(url, config)),
 };

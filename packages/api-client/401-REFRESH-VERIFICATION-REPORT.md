@@ -8,9 +8,10 @@
 
 ## 📋 Executive Summary
 
-`@jigoooo/api-client` 라이브러리의 401 토큰 갱신 메커니즘이 깊게 검증되었으며, **핵심 기능은 정상 작동**합니다. 
+`@jigoooo/api-client` 라이브러리의 401 토큰 갱신 메커니즘이 깊게 검증되었으며, **핵심 기능은 정상 작동**합니다.
 
 **발견사항**:
+
 - ✅ 401 에러 발생 → 토큰 갱신 → 자동 재시도 **정상**
 - ✅ 동시 401 요청 큐 메커니즘 **정상** (사용자 모르게 refresh되지 않음)
 - ✅ 선제적 토큰 갱신 (isTokenExpired) **정상**
@@ -30,7 +31,8 @@
 
 ## 📐 Phase 1: Planning
 
-**실행 계획**: 
+**실행 계획**:
+
 1. Mock 설정 (axios, refreshTokenFn, callbacks)
 2. Helper 유틸 작성 (시간 측정, 상태 추적)
 3. 7가지 테스트 그룹별 테스트 작성 (35+ cases)
@@ -47,43 +49,53 @@
 
 **파일**: `packages/api-client/__tests__/401-refresh.test.ts`
 
-| 테스트 그룹 | 케이스 수 | 커버 영역 |
-|-----------|---------|----------|
-| 3.1 Basic Flows | 3 | 정상 응답, 401 갱신 성공/실패 |
-| 3.2 Queue Mechanism | 3 | 동시 401, maxQueueSize, 큐 토큰 전달 |
-| 3.3 Proactive Refresh | 4 | isTokenExpired 미설정/true/false/throw |
-| 3.4 User Hooks | 3 | onRequest, onResponse, onErrorResponse |
-| 3.5 Hidden Behaviors | 3 | Silent refresh 미발생, 무시 동작, 로깅 |
-| 3.6 Edge Cases | 6 | Concurrent 실패, retryDelay, 연속 401 등 |
-| 3.7 Config Variations | 3 | maxRetries, retryDelay, shouldRetry |
+| 테스트 그룹           | 케이스 수 | 커버 영역                                |
+| --------------------- | --------- | ---------------------------------------- |
+| 3.1 Basic Flows       | 3         | 정상 응답, 401 갱신 성공/실패            |
+| 3.2 Queue Mechanism   | 3         | 동시 401, maxQueueSize, 큐 토큰 전달     |
+| 3.3 Proactive Refresh | 4         | isTokenExpired 미설정/true/false/throw   |
+| 3.4 User Hooks        | 3         | onRequest, onResponse, onErrorResponse   |
+| 3.5 Hidden Behaviors  | 3         | Silent refresh 미발생, 무시 동작, 로깅   |
+| 3.6 Edge Cases        | 6         | Concurrent 실패, retryDelay, 연속 401 등 |
+| 3.7 Config Variations | 3         | maxRetries, retryDelay, shouldRetry      |
 
 **결과**: 25개 테스트 모두 작성 완료 (49개 전체 테스트 통과)
 
 ### 5개 Critical 버그 발견 및 수정
 
 #### 🔴 Bug 1: handleTokenRefresh - processQueue(error) 누락
+
 **상태**: ✅ 수정됨 (부분적)
+
 - **문제**: attemptTokenRefresh 실패 시 큐 대기 요청들이 영원히 pending
 - **수정**: `interceptors.ts:408`에 `processQueue(refreshError as Error, null)` 추가
 - **주의**: 외부 catch-all(`line 413`)이 에러를 삼킬 수 있는 구조적 한계 존재
 
 #### 🔴 Bug 2: processQueue - null 처리 누락
+
 **상태**: ✅ 수정됨
+
 - **문제**: error와 token이 모두 null이면 큐 항목이 영원히 대기
 - **수정**: `interceptors.ts:40`에 `else` 브랜치 추가 (reject 처리)
 
 #### 🔴 Bug 3: onRequest - applyToken/injectToken 순서 오류
+
 **상태**: ✅ 수정됨
+
 - **문제**: injectToken (새 토큰) → applyToken (기존 토큰)으로 덮어쓰기 발생
 - **수정**: 순서 변경 `applyToken → injectToken` (line 119-123)
 
 #### 🔴 Bug 4: attemptTokenRefresh - 첫 시도 지연
+
 **상태**: ✅ 수정됨
+
 - **문제**: maxRetries=1이어도 첫 호출이 retryDelay만큼 지연
 - **수정**: `if (attempt > 0 && retryDelay > 0)` 조건 추가 (line 341)
 
 #### 🔴 Bug 5: logAxiosErrorShort - console.log 직접 사용
+
 **상태**: ✅ 수정됨
+
 - **문제**: 프로덕션에서도 에러 로그 출력
 - **수정**: `console.log` → `logOnDev` 변경 (line 292)
 
@@ -101,6 +113,7 @@
 ```
 
 **테스트 실행 명령어**:
+
 ```bash
 cd packages/api-client
 npm run build    # ✅ 성공
@@ -115,16 +128,16 @@ npm run test     # ✅ 49 passed
 
 **판정**: ✅ **PASSED**
 
-| 항목 | 결과 |
-|------|------|
-| 401 처리 → 갱신 → 재시도 | PASS |
-| 동시 요청 큐 관리 (중복 갱신 방지) | PASS |
-| 선제적 토큰 갱신 (isTokenExpired) | PASS |
-| 설정값 적용 (maxRetries, retryDelay, maxQueueSize) | PASS |
-| Bug 5개 수정 | 4/5 완전 + 1/5 부분 |
-| 메모리 안전성 | PASS |
-| 동시성 안전성 | PASS |
-| Graceful Fallback | PASS |
+| 항목                                               | 결과                |
+| -------------------------------------------------- | ------------------- |
+| 401 처리 → 갱신 → 재시도                           | PASS                |
+| 동시 요청 큐 관리 (중복 갱신 방지)                 | PASS                |
+| 선제적 토큰 갱신 (isTokenExpired)                  | PASS                |
+| 설정값 적용 (maxRetries, retryDelay, maxQueueSize) | PASS                |
+| Bug 5개 수정                                       | 4/5 완전 + 1/5 부분 |
+| 메모리 안전성                                      | PASS                |
+| 동시성 안전성                                      | PASS                |
+| Graceful Fallback                                  | PASS                |
 
 **결론**: 모든 핵심 요구사항 만족 ✅
 
@@ -133,6 +146,7 @@ npm run test     # ✅ 49 passed
 **판정**: ✅ **CONDITIONAL PASS**
 
 **강점**:
+
 - ✅ 명확한 함수명 및 충분한 JSDoc
 - ✅ 적절한 함수 크기 및 단일 책임 원칙
 - ✅ TypeScript 타입 안전성 (에러 0개)
@@ -140,25 +154,27 @@ npm run test     # ✅ 49 passed
 
 **개선 필요 사항**:
 
-| 심각도 | 항목 | 파일 | 상세 |
-|--------|------|------|------|
-| HIGH | 과도한 빈 catch 블록 | interceptors.ts | 10개의 catch에서 에러 삼킴, 특히 line 413 |
-| MEDIUM | API 타입 (any) | api-request.ts | `Promise<any>` → `Promise<AxiosResponse<T>>` |
-| MEDIUM | 모듈 레벨 mutable 상태 | interceptors.ts | isRefreshing, failedQueue → 캡슐화 필요 |
-| MEDIUM | 커버리지 부족 | 전체 | 64.19% (목표 70%) - init-api, customed-axios 미테스트 |
-| LOW | 이중 로깅 | interceptors.ts | onRequest에서 logOnDev 2회 호출 |
-| LOW | 네이밍 | customed-axios.ts | "customedAxios" → "customAxios" |
+| 심각도 | 항목                   | 파일              | 상세                                                  |
+| ------ | ---------------------- | ----------------- | ----------------------------------------------------- |
+| HIGH   | 과도한 빈 catch 블록   | interceptors.ts   | 10개의 catch에서 에러 삼킴, 특히 line 413             |
+| MEDIUM | API 타입 (any)         | api-request.ts    | `Promise<any>` → `Promise<AxiosResponse<T>>`          |
+| MEDIUM | 모듈 레벨 mutable 상태 | interceptors.ts   | isRefreshing, failedQueue → 캡슐화 필요               |
+| MEDIUM | 커버리지 부족          | 전체              | 64.19% (목표 70%) - init-api, customed-axios 미테스트 |
+| LOW    | 이중 로깅              | interceptors.ts   | onRequest에서 logOnDev 2회 호출                       |
+| LOW    | 네이밍                 | customed-axios.ts | "customedAxios" → "customAxios"                       |
 
 ---
 
 ## 🔍 발견된 아키텍처 이슈
 
 ### Issue #1: handleTokenRefresh의 외부 catch-all (심각도: Medium)
+
 **위치**: `interceptors.ts:413-415`
 **문제**: 의도치 않은 에러도 삼킴
 **권장 수정**: error 타입 검사 후 config 미설정 에러만 무시
 
 ### Issue #2: 인터셉터 이중 등록 방지 미구현 (심각도: Low)
+
 **위치**: `interceptors.ts:496-501`
 **문제**: 같은 인스턴스에 2회 등록 시 핸들러 중복
 **영향**: initApi() 싱글턴이므로 현재는 미발생
@@ -193,12 +209,11 @@ npm run test     # ✅ 49 passed
 ### ⚠️ 권장 개선사항
 
 **즉시 개선 권장**:
+
 1. HIGH: 빈 catch 블록에서 최소한 `logOnDev`로 에러 기록
 2. MEDIUM: 커버리지 70% 이상으로 개선 (init-api, customed-axios 테스트 추가)
 
-**중기 개선**:
-3. MEDIUM: 모듈 레벨 상태를 클래스/팩토리로 캡슐화
-4. MEDIUM: `api-request.ts` 제네릭 타입 개선
+**중기 개선**: 3. MEDIUM: 모듈 레벨 상태를 클래스/팩토리로 캡슐화 4. MEDIUM: `api-request.ts` 제네릭 타입 개선
 
 ---
 
@@ -224,13 +239,13 @@ npx vitest run __tests__/401-refresh.test.ts
 
 ## 📚 관련 파일
 
-| 파일 | 설명 |
-|------|------|
-| `src/interceptors.ts` | 401 갱신 로직 구현 (5개 버그 수정) |
-| `src/config.ts` | ApiConfig, RetryConfig 타입 정의 |
-| `src/init-api.ts` | axios 인스턴스 초기화 |
-| `__tests__/401-refresh.test.ts` | 25개 신규 테스트 (7개 그룹) |
-| `__tests__/api-request.test.ts` | 기존 API 요청 테스트 |
+| 파일                            | 설명                               |
+| ------------------------------- | ---------------------------------- |
+| `src/interceptors.ts`           | 401 갱신 로직 구현 (5개 버그 수정) |
+| `src/config.ts`                 | ApiConfig, RetryConfig 타입 정의   |
+| `src/init-api.ts`               | axios 인스턴스 초기화              |
+| `__tests__/401-refresh.test.ts` | 25개 신규 테스트 (7개 그룹)        |
+| `__tests__/api-request.test.ts` | 기존 API 요청 테스트               |
 
 ---
 

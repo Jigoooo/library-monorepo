@@ -14,14 +14,14 @@ pnpm add @jigoooo/api-client axios qs
 
 ```typescript
 // 함수
-import { initApi } from '@jigoooo/api-client';       // API 클라이언트 초기화
+import { initApi } from '@jigoooo/api-client'; // API 클라이언트 초기화
 import { isApiConfigured } from '@jigoooo/api-client'; // 초기화 여부 확인
 
 // 객체
 import { api } from '@jigoooo/api-client'; // HTTP 메서드 인터페이스
 
 // 타입
-import type { ApiConfig } from '@jigoooo/api-client';   // initApi() 설정 타입
+import type { ApiConfig } from '@jigoooo/api-client'; // initApi() 설정 타입
 import type { ApiInstance } from '@jigoooo/api-client'; // api 객체 타입
 import type { RetryConfig } from '@jigoooo/api-client'; // 재시도 설정 타입
 ```
@@ -122,30 +122,30 @@ initApi({
 
 ## ApiConfig 옵션 전체
 
-| 옵션                | 타입                                        | 필수 | 기본값                         | 설명                                                            |
-| ------------------- | ------------------------------------------- | ---- | ------------------------------ | --------------------------------------------------------------- |
-| `baseURL`           | `string`                                    | ✓    | -                              | API 기본 URL                                                    |
-| `getToken`          | `() => string \| null \| undefined`         |      | -                              | 요청마다 호출되는 토큰 getter. 반환값이 있으면 Bearer 헤더 주입 |
-| `refreshTokenFn`    | `() => Promise<string>`                     |      | -                              | 401 발생 시 호출되는 토큰 갱신 함수. 새 토큰을 반환해야 함      |
-| `onUnauthorized`    | `() => void`                                |      | `window.location.href='/login'`| 토큰 갱신 실패 시 호출되는 콜백                                 |
-| `retryConfig`       | `RetryConfig`                               |      | 아래 참고                      | 재시도 설정 객체                                                |
-| `transformRequest`  | `false \| 'snakeCase' \| (data) => unknown` |      | `false`                        | 요청 데이터 전처리 방식 (camelCase → snake_case 변환 등)        |
-| `transformResponse` | `false \| 'camelCase' \| (data) => unknown` |      | `false`                        | 응답 데이터 전처리 방식 (snake_case → camelCase 변환 등)        |
-| `onRequest`         | `(config) => InternalAxiosRequestConfig`    |      | -                              | 토큰 주입 이후 실행되는 요청 훅. config 수정 가능               |
-| `onResponse`        | `(response) => AxiosResponse`               |      | -                              | 응답 후 실행되는 훅. response 수정 가능                         |
-| `onErrorRequest`    | `(error: AxiosError) => void`               |      | -                              | 요청 에러 시 내장 로깅 이후 추가 처리                           |
-| `onErrorResponse`   | `(error: AxiosError \| Error) => void`      |      | -                              | 응답 에러 시 내장 401 처리 이후 추가 처리                       |
-| `axiosOptions`      | `AxiosRequestConfig`                        |      | -                              | axios.create()에 전달할 추가 옵션 (baseURL 제외)                |
+| 옵션                | 타입                                        | 필수 | 기본값                          | 설명                                                            |
+| ------------------- | ------------------------------------------- | ---- | ------------------------------- | --------------------------------------------------------------- |
+| `baseURL`           | `string`                                    | ✓    | -                               | API 기본 URL                                                    |
+| `getToken`          | `() => string \| null \| undefined`         |      | -                               | 요청마다 호출되는 토큰 getter. 반환값이 있으면 Bearer 헤더 주입 |
+| `refreshTokenFn`    | `() => Promise<string>`                     |      | -                               | 401 발생 시 호출되는 토큰 갱신 함수. 새 토큰을 반환해야 함      |
+| `onUnauthorized`    | `() => void`                                |      | `window.location.href='/login'` | 토큰 갱신 실패 시 호출되는 콜백                                 |
+| `retryConfig`       | `RetryConfig`                               |      | 아래 참고                       | 재시도 설정 객체                                                |
+| `transformRequest`  | `false \| 'snakeCase' \| (data) => unknown` |      | `false`                         | 요청 데이터 전처리 방식 (camelCase → snake_case 변환 등)        |
+| `transformResponse` | `false \| 'camelCase' \| (data) => unknown` |      | `false`                         | 응답 데이터 전처리 방식 (snake_case → camelCase 변환 등)        |
+| `onRequest`         | `(config) => InternalAxiosRequestConfig`    |      | -                               | 토큰 주입 이후 실행되는 요청 훅. config 수정 가능               |
+| `onResponse`        | `(response) => AxiosResponse`               |      | -                               | 응답 후 실행되는 훅. response 수정 가능                         |
+| `onErrorRequest`    | `(error: AxiosError) => void`               |      | -                               | 요청 에러 시 내장 로깅 이후 추가 처리                           |
+| `onErrorResponse`   | `(error: AxiosError \| Error) => void`      |      | -                               | 응답 에러 시 내장 401 처리 이후 추가 처리                       |
+| `axiosOptions`      | `AxiosRequestConfig`                        |      | -                               | axios.create()에 전달할 추가 옵션 (baseURL 제외)                |
 
 ## RetryConfig 옵션
 
-| 옵션             | 타입                             | 기본값                              | 설명                                                             |
-| ---------------- | -------------------------------- | ----------------------------------- | ---------------------------------------------------------------- |
-| `maxRetries`     | `number`                         | `1`                                 | 토큰 갱신 재시도 최대 횟수                                       |
-| `retryDelay`     | `number`                         | `0`                                 | 재시도 사이 대기 시간(ms)                                        |
-| `maxQueueSize`   | `number`                         | `50`                                | 동시 401 발생 시 대기열 최대 크기. 초과 시 즉시 reject           |
-| `shouldRetry`    | `(error: AxiosError) => boolean` | `(e) => e.response?.status === 401` | 재시도 실행 조건 함수. true 반환 시 refreshTokenFn 호출          |
-| `isTokenExpired` | `() => boolean`                  | -                                   | 요청 전 선제적 토큰 만료 확인 함수. true 반환 시 사전 갱신 수행  |
+| 옵션             | 타입                             | 기본값                              | 설명                                                            |
+| ---------------- | -------------------------------- | ----------------------------------- | --------------------------------------------------------------- |
+| `maxRetries`     | `number`                         | `1`                                 | 토큰 갱신 재시도 최대 횟수                                      |
+| `retryDelay`     | `number`                         | `0`                                 | 재시도 사이 대기 시간(ms)                                       |
+| `maxQueueSize`   | `number`                         | `50`                                | 동시 401 발생 시 대기열 최대 크기. 초과 시 즉시 reject          |
+| `shouldRetry`    | `(error: AxiosError) => boolean` | `(e) => e.response?.status === 401` | 재시도 실행 조건 함수. true 반환 시 refreshTokenFn 호출         |
+| `isTokenExpired` | `() => boolean`                  | -                                   | 요청 전 선제적 토큰 만료 확인 함수. true 반환 시 사전 갱신 수행 |
 
 ## API 참조
 
@@ -185,19 +185,19 @@ api.delete(url: string, config?: AxiosRequestConfig): Promise<unknown>
 
 #### 매개변수
 
-| 매개변수 | 타입                  | 설명                                                              |
-| -------- | --------------------- | ----------------------------------------------------------------- |
-| `url`    | `string`              | 요청 경로 (`baseURL`에 추가됨)                                    |
-| `data`   | `unknown`             | 요청 바디 (POST, PUT, PATCH)                                      |
-| `config` | `AxiosRequestConfig`  | 요청별 axios 옵션 (headers, params, timeout, signal 등 개별 지정) |
+| 매개변수 | 타입                 | 설명                                                              |
+| -------- | -------------------- | ----------------------------------------------------------------- |
+| `url`    | `string`             | 요청 경로 (`baseURL`에 추가됨)                                    |
+| `data`   | `unknown`            | 요청 바디 (POST, PUT, PATCH)                                      |
+| `config` | `AxiosRequestConfig` | 요청별 axios 옵션 (headers, params, timeout, signal 등 개별 지정) |
 
 #### 반환 타입
 
 모든 메서드는 `Promise<unknown>`을 반환합니다. 응답 타입이 필요하면 호출 측에서 캐스팅하세요.
 
 ```typescript
-const users = await api.get('/users') as User[];
-const user = await api.post('/users', { name: 'John' }) as User;
+const users = (await api.get('/users')) as User[];
+const user = (await api.post('/users', { name: 'John' })) as User;
 ```
 
 ## 타입 정의 예제
@@ -479,13 +479,16 @@ Error: @jigoooo/api-client: initApi()를 먼저 호출하세요.
 
 ```typescript
 // 내부 구조
-const customedAxios = new Proxy({}, {
-  get(_target, prop) {
-    const instance = getAxiosInstance(); // 호출 시점에 조회
-    const value = instance[prop];
-    return typeof value === 'function' ? value.bind(instance) : value;
+const customedAxios = new Proxy(
+  {},
+  {
+    get(_target, prop) {
+      const instance = getAxiosInstance(); // 호출 시점에 조회
+      const value = instance[prop];
+      return typeof value === 'function' ? value.bind(instance) : value;
+    },
   },
-});
+);
 ```
 
 이 덕분에 다음과 같은 순서로 사용해도 안전합니다:
@@ -520,8 +523,8 @@ initApi({
     return accessToken;
   },
   onUnauthorized: () => {
-    store.dispatch(logout());        // 상태 초기화
-    router.replace('/login');        // 라우터로 리다이렉트
+    store.dispatch(logout()); // 상태 초기화
+    router.replace('/login'); // 라우터로 리다이렉트
   },
 });
 ```
@@ -563,7 +566,7 @@ initApi({
 ```typescript
 async function fetchUserSilently(id: number): Promise<User | null> {
   try {
-    return await api.get(`/users/${id}`) as User;
+    return (await api.get(`/users/${id}`)) as User;
   } catch (error) {
     // 전역 onErrorResponse는 이미 실행됨
     // 여기서 추가 처리 또는 fallback 반환

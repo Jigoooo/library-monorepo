@@ -71,14 +71,10 @@ const makeOkResponse = (data: unknown = { ok: true }): MockAxiosResponse => ({
 // ── 핸들러 추출 헬퍼 ────────────────────────────────────────────────────────
 
 const extractHandlers = (mockInstance: ReturnType<typeof makeMockAxiosInstance>) => {
-  const requestSuccessHandler =
-    mockInstance.interceptors.request.use.mock.calls[0]?.[0];
-  const requestErrorHandler =
-    mockInstance.interceptors.request.use.mock.calls[0]?.[1];
-  const responseSuccessHandler =
-    mockInstance.interceptors.response.use.mock.calls[0]?.[0];
-  const responseErrorHandler =
-    mockInstance.interceptors.response.use.mock.calls[0]?.[1];
+  const requestSuccessHandler = mockInstance.interceptors.request.use.mock.calls[0]?.[0];
+  const requestErrorHandler = mockInstance.interceptors.request.use.mock.calls[0]?.[1];
+  const responseSuccessHandler = mockInstance.interceptors.response.use.mock.calls[0]?.[0];
+  const responseErrorHandler = mockInstance.interceptors.response.use.mock.calls[0]?.[1];
 
   return {
     requestSuccessHandler,
@@ -307,9 +303,9 @@ describe('401 토큰 갱신 인터셉터', () => {
 
     it('Queue resolve/reject 정확성: 갱신 성공 시 모든 큐 항목에 새 토큰 전달', async () => {
       const mockAxiosInstance = makeMockAxiosInstance();
-      const mockAxiosRequest = vi.fn().mockImplementation((config: any) =>
-        Promise.resolve(makeOkResponse({ url: config.url })),
-      );
+      const mockAxiosRequest = vi
+        .fn()
+        .mockImplementation((config: any) => Promise.resolve(makeOkResponse({ url: config.url })));
       const mockIsAxiosError = vi.fn().mockReturnValue(true);
 
       let resolveRefresh!: (token: string) => void;
@@ -1206,10 +1202,12 @@ describe('401 토큰 갱신 인터셉터', () => {
       const { interceptors } = await import('../src/interceptors');
 
       // 403도 갱신 트리거하는 커스텀 shouldRetry
-      const shouldRetry = vi.fn().mockImplementation(
-        (error: MockAxiosError) =>
-          error.response?.status === 401 || error.response?.status === 403,
-      );
+      const shouldRetry = vi
+        .fn()
+        .mockImplementation(
+          (error: MockAxiosError) =>
+            error.response?.status === 401 || error.response?.status === 403,
+        );
 
       setApiConfig({
         baseURL: 'https://api.example.com',
