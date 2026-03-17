@@ -129,7 +129,8 @@ initApi({
 | `refreshTokenFn`    | `() => Promise<string>`                     |      | -                              | 401 발생 시 호출되는 토큰 갱신 함수. 새 토큰을 반환해야 함      |
 | `onUnauthorized`    | `() => void`                                |      | `window.location.href='/login'`| 토큰 갱신 실패 시 호출되는 콜백                                 |
 | `retryConfig`       | `RetryConfig`                               |      | 아래 참고                      | 재시도 설정 객체                                                |
-| `transformResponse` | `false \| 'camelCase' \| (data) => unknown` |      | `false`                        | 응답 데이터 전처리 방식                                         |
+| `transformRequest`  | `false \| 'snakeCase' \| (data) => unknown` |      | `false`                        | 요청 데이터 전처리 방식 (camelCase → snake_case 변환 등)        |
+| `transformResponse` | `false \| 'camelCase' \| (data) => unknown` |      | `false`                        | 응답 데이터 전처리 방식 (snake_case → camelCase 변환 등)        |
 | `onRequest`         | `(config) => InternalAxiosRequestConfig`    |      | -                              | 토큰 주입 이후 실행되는 요청 훅. config 수정 가능               |
 | `onResponse`        | `(response) => AxiosResponse`               |      | -                              | 응답 후 실행되는 훅. response 수정 가능                         |
 | `onErrorRequest`    | `(error: AxiosError) => void`               |      | -                              | 요청 에러 시 내장 로깅 이후 추가 처리                           |
@@ -298,6 +299,81 @@ initApi({
       return exp * 1000 - 30_000 < Date.now();
     },
   },
+});
+```
+
+### 요청 데이터 변환
+
+`transformRequest`를 설정하면 POST, PUT, PATCH 요청 시 데이터를 자동으로 변환합니다.
+
+```typescript
+initApi({
+  baseURL: 'https://api.example.com',
+  transformRequest: 'snakeCase', // camelCase를 snake_case로 변환
+});
+
+// 요청 데이터: { userId: 1, userName: 'John' }
+await api.post('/users', { userId: 1, userName: 'John' });
+// 실제 전송: { user_id: 1, user_name: 'John' }
+```
+
+중첩 객체와 배열도 동일하게 처리됩니다:
+
+```typescript
+// 요청 데이터
+const data = {
+  userId: 1,
+  userProfile: {
+    firstName: 'John',
+    lastName: 'Doe',
+  },
+  userRoles: [
+    { roleId: 1, roleName: 'admin' },
+    { roleId: 2, roleName: 'user' },
+  ],
+};
+
+await api.post('/users', data);
+
+// 실제 전송
+{
+  user_id: 1,
+  user_profile: {
+    first_name: 'John',
+    last_name: 'Doe',
+  },
+  user_roles: [
+    { role_id: 1, role_name: 'admin' },
+    { role_id: 2, role_name: 'user' },
+  ],
+}
+```
+
+커스텀 변환 함수도 지원합니다:
+
+```typescript
+initApi({
+  baseURL: 'https://api.example.com',
+  transformRequest: (data) => {
+    // 커스텀 변환 로직
+    if (typeof data === 'object' && data !== null) {
+      return {
+        ...data,
+        timestamp: new Date().toISOString(), // 모든 요청에 타임스탐프 추가
+      };
+    }
+    return data;
+  },
+});
+```
+
+Date, Map, Set 등의 특수 객체는 자동으로 보존됩니다:
+
+```typescript
+await api.post('/events', {
+  eventName: 'Conference',
+  eventDate: new Date('2024-06-15'), // 그대로 유지됨
+  metadata: new Map([['key', 'value']]), // 그대로 유지됨
 });
 ```
 

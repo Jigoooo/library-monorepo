@@ -1,6 +1,6 @@
 import type { AxiosRequestConfig } from 'axios';
 
-import { apiRequest } from './api-request';
+import { apiRequest, transformRequestData } from './api-request';
 import { customedAxios } from './customed-axios';
 
 /**
@@ -72,8 +72,8 @@ export interface ApiInstance {
  */
 export const api: ApiInstance = {
   get: (url, config) => apiRequest(customedAxios.get(url, config)),
-  post: (url, data, config) => apiRequest(customedAxios.post(url, data, config)),
-  put: (url, data, config) => apiRequest(customedAxios.put(url, data, config)),
-  patch: (url, data, config) => apiRequest(customedAxios.patch(url, data, config)),
+  post: (url, data, config) => apiRequest(customedAxios.post(url, transformRequestData(data), config)),
+  put: (url, data, config) => apiRequest(customedAxios.put(url, transformRequestData(data), config)),
+  patch: (url, data, config) => apiRequest(customedAxios.patch(url, transformRequestData(data), config)),
   delete: (url, config) => apiRequest(customedAxios.delete(url, config)),
 };

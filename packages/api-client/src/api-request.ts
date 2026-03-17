@@ -1,5 +1,33 @@
 import { getApiConfig } from './config';
 import { deepCamelize } from './utils/camelize';
+import { deepSnakelize } from './utils/snakelize';
+
+/**
+ * 요청 데이터를 ApiConfig의 transformRequest 설정에 따라 변환합니다.
+ *
+ * transformRequest 적용 순서:
+ * 1. 'snakeCase' → camelCase를 snake_case로 변환
+ * 2. 함수 → 커스텀 변환 함수 실행
+ * 3. false/undefined → 원본 데이터 반환
+ *
+ * @param data 변환할 요청 데이터
+ * @returns transformRequest가 적용된 데이터
+ *
+ * @internal
+ * @example
+ * const transformed = transformRequestData({ userId: 1, userName: 'John' });
+ * // transformRequest가 'snakeCase'인 경우 -> { user_id: 1, user_name: 'John' }
+ */
+export function transformRequestData(data: unknown): unknown {
+  const { transformRequest } = getApiConfig();
+
+  if (transformRequest === 'snakeCase') {
+    return deepSnakelize(data);
+  } else if (typeof transformRequest === 'function') {
+    return transformRequest(data);
+  }
+  return data;
+}
 
 /**
  * Axios 응답을 처리하고 transformResponse를 적용합니다.

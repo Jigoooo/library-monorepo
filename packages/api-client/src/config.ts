@@ -44,9 +44,17 @@ export interface ApiConfig {
   retryConfig?: RetryConfig;
 
   /**
-   * adaptResponse 호출 전 response.data 전처리.
+   * 요청 데이터 전처리.
    * - undefined 또는 false(기본): 변환 없음
-   * - 'camelCase': deepCamelize 적용
+   * - 'snakeCase': deepSnakelize 적용 (camelCase → snake_case)
+   * - 함수: 해당 함수로 변환
+   */
+  transformRequest?: false | 'snakeCase' | ((data: unknown) => unknown);
+
+  /**
+   * 응답 데이터 전처리 (apiRequest 호출 시).
+   * - undefined 또는 false(기본): 변환 없음
+   * - 'camelCase': deepCamelize 적용 (snake_case → camelCase)
    * - 함수: 해당 함수로 변환
    */
   transformResponse?: false | 'camelCase' | ((data: unknown) => unknown);
