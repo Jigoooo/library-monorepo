@@ -1,6 +1,7 @@
+import type { AxiosInstance } from 'axios';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import axios, { AxiosInstance } from 'axios';
-import { initApi, isApiConfigured, api } from '../src/index';
+
+import { initApi } from '../src/index';
 
 describe('transformRequest - 요청 데이터 변환', () => {
   beforeEach(() => {
@@ -9,7 +10,7 @@ describe('transformRequest - 요청 데이터 변환', () => {
 
   describe('transformRequest: false (기본값)', () => {
     it('데이터를 변환하지 않음', async () => {
-      const mockAxios = {
+      const _mockAxios = {
         post: vi.fn().mockResolvedValue({ data: { result: 'success' } }),
       } as unknown as AxiosInstance;
 
@@ -187,7 +188,7 @@ describe('transformRequest - 요청 데이터 변환', () => {
 
   describe('api 메서드 통합', () => {
     it('api.post에서 데이터가 변환됨', async () => {
-      const mockPost = vi.fn().mockResolvedValue({
+      const _mockPost = vi.fn().mockResolvedValue({
         data: { success: true },
       });
 

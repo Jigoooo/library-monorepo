@@ -54,10 +54,26 @@ export interface ApiConfig {
   /**
    * 응답 데이터 전처리 (apiRequest 호출 시).
    * - undefined 또는 false(기본): 변환 없음
-   * - 'camelCase': deepCamelize 적용 (snake_case → camelCase)
+   * - 'camelCase': deepCamelCase 적용 (snake_case → camelCase)
    * - 함수: 해당 함수로 변환
    */
   transformResponse?: false | 'camelCase' | ((data: unknown) => unknown);
+
+  /**
+   * 요청에서 인증 헤더를 건너뛸지 결정하는 함수.
+   * true 반환 시 Authorization 헤더를 추가하지 않습니다.
+   * 로그인, 회원가입 등 인증이 필요 없는 요청에 사용합니다.
+   *
+   * @param config 요청 설정 객체
+   * @returns true면 인증 헤더 생략, false면 포함
+   *
+   * @example
+   * shouldSkipAuth: (config) => {
+   *   const path = config.url || '';
+   *   return path.startsWith('/auth/') || path === '/login';
+   * }
+   */
+  shouldSkipAuth?: (config: AxiosRequestConfig) => boolean;
 
   /** 요청 전 (토큰 주입 이후) 실행. config 수정 가능 */
   onRequest?: (

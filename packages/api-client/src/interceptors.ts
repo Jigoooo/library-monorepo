@@ -80,13 +80,21 @@ const injectToken = async (headers: AxiosRequestConfig['headers']) => {
 
 /**
  * 현재 유효한 토큰을 요청 헤더에 주입합니다.
- * getToken() 함수를 호출하여 토큰을 가져오고 Authorization 헤더에 설정합니다.
+ * shouldSkipAuth 함수로 인증을 건너뛸지 확인하고,
+ * 필요한 경우 getToken() 함수를 호출하여 토큰을 가져오고 Authorization 헤더에 설정합니다.
  *
+ * @param config - Axios 요청 설정 객체 (shouldSkipAuth 확인에 사용)
  * @param headers - Axios 요청 헤더 객체 (Authorization 헤더 추가에 사용)
  */
-const applyToken = (headers: AxiosRequestConfig['headers']) => {
+const applyToken = (config: AxiosRequestConfig, headers: AxiosRequestConfig['headers']) => {
   try {
-    const { getToken } = getApiConfig();
+    const { getToken, shouldSkipAuth } = getApiConfig();
+
+    // shouldSkipAuth 함수로 인증 건너뛰기 여부 확인
+    if (shouldSkipAuth?.(config)) {
+      return;
+    }
+
     const token = getToken?.();
     if (token && headers) {
       headers.Authorization = `Bearer ${token}`;
@@ -117,7 +125,7 @@ const onRequest = async (config: AxiosRequestConfig): Promise<InternalAxiosReque
   }
 
   // ── 내장: 현재 토큰 주입 (먼저 적용)
-  applyToken(headers);
+  applyToken(config, headers);
 
   // ── 내장: 선제적 토큰 만료 확인 후 refresh (만료 시 새 토큰으로 덮어씀)
   await injectToken(headers);

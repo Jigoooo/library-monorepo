@@ -1,6 +1,6 @@
 import { getApiConfig } from './config';
-import { deepCamelize } from './utils/camelize';
-import { deepSnakelize } from './utils/snakelize';
+import { deepCamelCase } from './utils/camelize';
+import { deepSnakeCase } from './utils/snakelize';
 
 /**
  * 요청 데이터를 ApiConfig의 transformRequest 설정에 따라 변환합니다.
@@ -22,7 +22,7 @@ export function transformRequestData(data: unknown): unknown {
   const { transformRequest } = getApiConfig();
 
   if (transformRequest === 'snakeCase') {
-    return deepSnakelize(data);
+    return deepSnakeCase(data);
   } else if (typeof transformRequest === 'function') {
     return transformRequest(data);
   }
@@ -52,7 +52,7 @@ export async function apiRequest(request: Promise<any>) {
   // transformResponse 설정에 따라 응답 데이터 변환
   let data: unknown;
   if (transformResponse === 'camelCase') {
-    data = deepCamelize(response.data);
+    data = deepCamelCase(response.data);
   } else if (typeof transformResponse === 'function') {
     data = transformResponse(response.data);
   } else {
