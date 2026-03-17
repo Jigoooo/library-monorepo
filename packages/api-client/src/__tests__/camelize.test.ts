@@ -1,15 +1,15 @@
 import { describe, it, expect } from 'vitest';
 
-import { deepCamelize } from '../utils/camelize';
+import { deepCamelCase } from '../utils/camelize';
 
-describe('deepCamelize', () => {
+describe('deepCamelCase', () => {
   it('단순 snake_case를 camelCase로 변환', () => {
     const input = {
       user_name: 'John',
       user_email: 'john@example.com',
     };
 
-    const result = deepCamelize(input);
+    const result = deepCamelCase(input);
 
     expect(result).toEqual({
       userName: 'John',
@@ -28,7 +28,7 @@ describe('deepCamelize', () => {
       },
     };
 
-    const result = deepCamelize(input);
+    const result = deepCamelCase(input);
 
     expect(result).toEqual({
       userInfo: {
@@ -49,7 +49,7 @@ describe('deepCamelize', () => {
       ],
     };
 
-    const result = deepCamelize(input);
+    const result = deepCamelCase(input);
 
     expect(result).toEqual({
       users: [
@@ -64,7 +64,7 @@ describe('deepCamelize', () => {
       user_list: [{ user_name: 'John' }, { user_name: 'Jane' }],
     };
 
-    const result = deepCamelize(input);
+    const result = deepCamelCase(input);
 
     expect(result).toEqual({
       userList: [{ userName: 'John' }, { userName: 'Jane' }],
@@ -76,7 +76,7 @@ describe('deepCamelize', () => {
       user_name: null,
     };
 
-    const result = deepCamelize(input);
+    const result = deepCamelCase(input);
 
     expect(result).toEqual({
       userName: null,
@@ -84,18 +84,18 @@ describe('deepCamelize', () => {
   });
 
   it('원시 값(string, number, boolean)은 그대로 반환', () => {
-    expect(deepCamelize('test_value')).toBe('test_value');
-    expect(deepCamelize(123)).toBe(123);
-    expect(deepCamelize(true)).toBe(true);
+    expect(deepCamelCase('test_value')).toBe('test_value');
+    expect(deepCamelCase(123)).toBe(123);
+    expect(deepCamelCase(true)).toBe(true);
   });
 
   it('빈 객체 처리', () => {
-    const result = deepCamelize({});
+    const result = deepCamelCase({});
     expect(result).toEqual({});
   });
 
   it('빈 배열 처리', () => {
-    const result = deepCamelize([]);
+    const result = deepCamelCase([]);
     expect(result).toEqual([]);
   });
 });

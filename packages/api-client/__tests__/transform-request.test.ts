@@ -286,9 +286,10 @@ describe('transformRequest - 요청 데이터 변환', () => {
       const input = { createdAt: date };
       const result = transformRequestData(input);
 
-      expect(result).toEqual({
-        created_at: date, // Date 객체는 변환되지 않음
-      });
+      // 객체의 키는 변환되고, Date 값은 유지됨
+      expect(result).toHaveProperty('created_at');
+      expect(result.created_at instanceof Date).toBe(true);
+      expect((result as any).created_at.getTime()).toBe(date.getTime());
     });
 
     it('이미 snake_case인 데이터도 처리', async () => {
@@ -311,6 +312,85 @@ describe('transformRequest - 요청 데이터 변환', () => {
         user_id: 1,
         user_name: 'John',
       });
+    });
+
+    it('FormData는 변환하지 않음', async () => {
+      const { transformRequestData } = await import('../src/api-request');
+
+      initApi({
+        baseURL: 'http://example.com',
+        transformRequest: 'snakeCase',
+        axiosOptions: {},
+      });
+
+      const formData = new FormData();
+      formData.append('userName', 'John');
+      formData.append('userId', '1');
+
+      const result = transformRequestData(formData);
+
+      // FormData는 그대로 반환되어야 함
+      expect(result).toBe(formData);
+    });
+
+    it('File은 변환하지 않음', async () => {
+      const { transformRequestData } = await import('../src/api-request');
+
+      initApi({
+        baseURL: 'http://example.com',
+        transformRequest: 'snakeCase',
+        axiosOptions: {},
+      });
+
+      const file = new File(['content'], 'test.txt', { type: 'text/plain' });
+      const result = transformRequestData(file);
+
+      expect(result).toBe(file);
+    });
+
+    it('Blob은 변환하지 않음', async () => {
+      const { transformRequestData } = await import('../src/api-request');
+
+      initApi({
+        baseURL: 'http://example.com',
+        transformRequest: 'snakeCase',
+        axiosOptions: {},
+      });
+
+      const blob = new Blob(['content'], { type: 'application/json' });
+      const result = transformRequestData(blob);
+
+      expect(result).toBe(blob);
+    });
+
+    it('URLSearchParams는 변환하지 않음', async () => {
+      const { transformRequestData } = await import('../src/api-request');
+
+      initApi({
+        baseURL: 'http://example.com',
+        transformRequest: 'snakeCase',
+        axiosOptions: {},
+      });
+
+      const params = new URLSearchParams('userName=John&userId=1');
+      const result = transformRequestData(params);
+
+      expect(result).toBe(params);
+    });
+
+    it('ArrayBuffer는 변환하지 않음', async () => {
+      const { transformRequestData } = await import('../src/api-request');
+
+      initApi({
+        baseURL: 'http://example.com',
+        transformRequest: 'snakeCase',
+        axiosOptions: {},
+      });
+
+      const buffer = new ArrayBuffer(8);
+      const result = transformRequestData(buffer);
+
+      expect(result).toBe(buffer);
     });
   });
 });

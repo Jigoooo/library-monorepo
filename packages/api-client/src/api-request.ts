@@ -18,7 +18,52 @@ import { deepSnakeCase } from './utils/snakelize';
  * const transformed = transformRequestData({ userId: 1, userName: 'John' });
  * // transformRequest가 'snakeCase'인 경우 -> { user_id: 1, user_name: 'John' }
  */
+/**
+ * 요청 데이터를 ApiConfig의 transformRequest 설정에 따라 변환합니다.
+ * FormData, File, Blob 등의 특수 타입은 변환하지 않습니다.
+ *
+ * transformRequest 적용 순서:
+ * 1. FormData/File/Blob/ArrayBuffer/URLSearchParams 등 → 그대로 반환
+ * 2. 'snakeCase' → camelCase를 snake_case로 변환
+ * 3. 함수 → 커스텀 변환 함수 실행
+ * 4. false/undefined → 원본 데이터 반환
+ *
+ * @param data 변환할 요청 데이터
+ * @returns transformRequest가 적용된 데이터
+ *
+ * @internal
+ * @example
+ * const transformed = transformRequestData({ userId: 1, userName: 'John' });
+ * // transformRequest가 'snakeCase'인 경우 -> { user_id: 1, user_name: 'John' }
+ *
+ * @example
+ * // FormData는 변환하지 않음
+ * const formData = new FormData();
+ * const result = transformRequestData(formData); // formData 그대로 반환
+ */
 export function transformRequestData(data: unknown): unknown {
+  // 특수 타입들은 변환하지 않음
+  if (
+    data instanceof FormData ||
+    data instanceof File ||
+    data instanceof Blob ||
+    data instanceof ArrayBuffer ||
+    data instanceof URLSearchParams
+  ) {
+    return data;
+  }
+
+  // 원시값들은 그대로 반환
+  if (typeof data === 'string' || typeof data === 'number' || typeof data === 'boolean') {
+    return data;
+  }
+
+  // null/undefined는 그대로 반환
+  if (data === null || data === undefined) {
+    return data;
+  }
+
+  // 객체/배열 변환
   const { transformRequest } = getApiConfig();
 
   if (transformRequest === 'snakeCase') {
@@ -26,6 +71,7 @@ export function transformRequestData(data: unknown): unknown {
   } else if (typeof transformRequest === 'function') {
     return transformRequest(data);
   }
+
   return data;
 }
 
