@@ -1,6 +1,28 @@
 {
   "name": "@jigoooo/api-client",
-  "version": "0.2.3",
+  "version": "0.2.4",
+  "description": "Axios 기반 API 클라이언트 — 토큰 갱신, 401 재시도, camelCase/snakeCase 변환 지원",
+  "keywords": [
+    "axios",
+    "api",
+    "client",
+    "token",
+    "refresh",
+    "401",
+    "camelCase",
+    "snakeCase"
+  ],
+  "author": "Jigoooo",
+  "license": "MIT",
+  "homepage": "https://github.com/Jigoooo/library-monorepo/tree/master/packages/api-client",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Jigoooo/library-monorepo.git",
+    "directory": "packages/api-client"
+  },
+  "bugs": {
+    "url": "https://github.com/Jigoooo/library-monorepo/issues"
+  },
   "type": "module",
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",

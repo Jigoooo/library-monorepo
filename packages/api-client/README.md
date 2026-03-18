@@ -122,20 +122,20 @@ initApi({
 
 ## ApiConfig 옵션 전체
 
-| 옵션                | 타입                                        | 필수 | 기본값                          | 설명                                                            |
-| ------------------- | ------------------------------------------- | ---- | ------------------------------- | --------------------------------------------------------------- |
-| `baseURL`           | `string`                                    | ✓    | -                               | API 기본 URL                                                    |
-| `getToken`          | `() => string \| null \| undefined`         |      | -                               | 요청마다 호출되는 토큰 getter. 반환값이 있으면 Bearer 헤더 주입 |
-| `refreshTokenFn`    | `() => Promise<string>`                     |      | -                               | 401 발생 시 호출되는 토큰 갱신 함수. 새 토큰을 반환해야 함      |
-| `onUnauthorized`    | `() => void`                                |      | `window.location.href='/'` | 토큰 갱신 실패 시 호출되는 콜백                                 |
-| `retryConfig`       | `RetryConfig`                               |      | 아래 참고                       | 재시도 설정 객체                                                |
-| `transformRequest`  | `false \| 'snakeCase' \| (data) => unknown` |      | `false`                         | 요청 데이터 전처리 방식 (camelCase → snake_case 변환 등)        |
-| `transformResponse` | `false \| 'camelCase' \| (data) => unknown` |      | `false`                         | 응답 데이터 전처리 방식 (snake_case → camelCase 변환 등)        |
-| `onRequest`         | `(config) => InternalAxiosRequestConfig`    |      | -                               | 토큰 주입 이후 실행되는 요청 훅. config 수정 가능               |
-| `onResponse`        | `(response) => AxiosResponse`               |      | -                               | 응답 후 실행되는 훅. response 수정 가능                         |
-| `onErrorRequest`    | `(error: AxiosError) => void`               |      | -                               | 요청 에러 시 내장 로깅 이후 추가 처리                           |
-| `onErrorResponse`   | `(error: AxiosError \| Error) => void`      |      | -                               | 응답 에러 시 내장 401 처리 이후 추가 처리                       |
-| `axiosOptions`      | `AxiosRequestConfig`                        |      | -                               | axios.create()에 전달할 추가 옵션 (baseURL 제외)                |
+| 옵션                | 타입                                        | 필수 | 기본값    | 설명                                                            |
+| ------------------- | ------------------------------------------- | ---- | --------- | --------------------------------------------------------------- |
+| `baseURL`           | `string`                                    | ✓    | -         | API 기본 URL                                                    |
+| `getToken`          | `() => string \| null \| undefined`         |      | -         | 요청마다 호출되는 토큰 getter. 반환값이 있으면 Bearer 헤더 주입 |
+| `refreshTokenFn`    | `() => Promise<string>`                     |      | -         | 401 발생 시 호출되는 토큰 갱신 함수. 새 토큰을 반환해야 함      |
+| `onUnauthorized`    | `() => void`                                |      | -         | 토큰 갱신 실패 시 호출되는 콜백. 미설정 시 아무 동작도 없음     |
+| `retryConfig`       | `RetryConfig`                               |      | 아래 참고 | 재시도 설정 객체                                                |
+| `transformRequest`  | `false \| 'snakeCase' \| (data) => unknown` |      | `false`   | 요청 데이터 전처리 방식 (camelCase → snake_case 변환 등)        |
+| `transformResponse` | `false \| 'camelCase' \| (data) => unknown` |      | `false`   | 응답 데이터 전처리 방식 (snake_case → camelCase 변환 등)        |
+| `onRequest`         | `(config) => InternalAxiosRequestConfig`    |      | -         | 토큰 주입 이후 실행되는 요청 훅. config 수정 가능               |
+| `onResponse`        | `(response) => AxiosResponse`               |      | -         | 응답 후 실행되는 훅. response 수정 가능                         |
+| `onErrorRequest`    | `(error: AxiosError) => void`               |      | -         | 요청 에러 시 내장 로깅 이후 추가 처리                           |
+| `onErrorResponse`   | `(error: AxiosError \| Error) => void`      |      | -         | 응답 에러 시 내장 401 처리 이후 추가 처리                       |
+| `axiosOptions`      | `AxiosRequestConfig`                        |      | -         | axios.create()에 전달할 추가 옵션 (baseURL 제외)                |
 
 ## RetryConfig 옵션
 
@@ -508,9 +508,7 @@ const data = await api.get('/users'); // 정상 동작
 
 ### 토큰 갱신 실패 시 처리
 
-`refreshTokenFn`이 throw하거나 `refreshTokenFn` 자체가 설정되지 않은 경우, `onUnauthorized`가 호출됩니다. 기본 동작은 `window.location.href = '/'`으로 리다이렉트입니다.
-
-커스텀 처리가 필요하면 `onUnauthorized`를 설정하세요:
+`refreshTokenFn`이 throw하거나 `refreshTokenFn` 자체가 설정되지 않은 경우, `onUnauthorized`가 호출됩니다. **`onUnauthorized`를 설정하지 않으면 토큰 갱신 실패 시 아무 동작도 수행되지 않습니다.** 반드시 `onUnauthorized`를 명시적으로 설정하세요:
 
 ```typescript
 initApi({
@@ -528,6 +526,43 @@ initApi({
   },
 });
 ```
+
+#### React Router v6 적용 예시
+
+```typescript
+import { createBrowserRouter } from 'react-router-dom';
+import { initApi } from '@jigoooo/api-client';
+
+const router = createBrowserRouter([...]);
+
+initApi({
+  baseURL: 'https://api.example.com',
+  onUnauthorized: () => {
+    router.navigate('/');
+  },
+});
+```
+
+#### TanStack Router 적용 예시
+
+```typescript
+import { createRouter } from '@tanstack/react-router';
+import { initApi } from '@jigoooo/api-client';
+
+const router = createRouter({ routeTree });
+
+initApi({
+  baseURL: 'https://api.example.com',
+  onUnauthorized: () => {
+    router.navigate({ to: '/' });
+  },
+});
+```
+
+> **`window.location.href = '/'` vs 라우터 navigate 차이**:
+>
+> - `window.location.href = '/'` → 전체 페이지 새로고침, SPA 히스토리 초기화
+> - 라우터 `navigate` → SPA 내비게이션 유지, 상태 보존
 
 ### 요청 타임아웃 설정
 

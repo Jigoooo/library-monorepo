@@ -37,7 +37,10 @@ export interface ApiConfig {
    */
   refreshTokenFn?: () => Promise<string>;
 
-  /** refreshTokenFn 실패 또는 미설정 시 콜백. 기본: window.location.href = '/' */
+  /**
+   * refreshTokenFn 실패 또는 미설정 시 콜백.
+   * 미설정 시 토큰 갱신 실패가 조용히 무시됩니다. 반드시 설정하는 것을 권장합니다.
+   */
   onUnauthorized?: () => void;
 
   /** retry 관련 세부 설정 */

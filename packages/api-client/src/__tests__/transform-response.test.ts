@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+
 import { apiRequest } from '../api-request';
-import { setApiConfig, getApiConfig } from '../config';
+import { setApiConfig } from '../config';
 
 describe('transformResponse 응답 데이터 변환', () => {
   beforeEach(() => {
@@ -89,7 +90,7 @@ describe('transformResponse 응답 데이터 변환', () => {
       };
       const mockRequest = Promise.resolve(mockResponse);
 
-      const result = await apiRequest(mockRequest) as any;
+      const result = (await apiRequest(mockRequest)) as any;
 
       expect(result.userId).toBe(1);
       expect(result.createdAt).toEqual(date);
@@ -106,7 +107,7 @@ describe('transformResponse 응답 데이터 변환', () => {
       };
       const mockRequest = Promise.resolve(mockResponse);
 
-      const result = await apiRequest(mockRequest) as any;
+      const result = (await apiRequest(mockRequest)) as any;
 
       expect(result.userId).toBe(1);
       expect(result.dataMap).toEqual(map);
@@ -123,7 +124,7 @@ describe('transformResponse 응답 데이터 변환', () => {
       };
       const mockRequest = Promise.resolve(mockResponse);
 
-      const result = await apiRequest(mockRequest) as any;
+      const result = (await apiRequest(mockRequest)) as any;
 
       expect(result.userId).toBe(1);
       expect(result.tagsSet).toEqual(set);
@@ -140,7 +141,7 @@ describe('transformResponse 응답 데이터 변환', () => {
       };
       const mockRequest = Promise.resolve(mockResponse);
 
-      const result = await apiRequest(mockRequest) as any;
+      const result = (await apiRequest(mockRequest)) as any;
 
       expect(result.userId).toBe(1);
       expect(result.pattern).toEqual(regex);
@@ -157,7 +158,7 @@ describe('transformResponse 응답 데이터 변환', () => {
       };
       const mockRequest = Promise.resolve(mockResponse);
 
-      const result = await apiRequest(mockRequest) as any;
+      const result = (await apiRequest(mockRequest)) as any;
 
       expect(result.userId).toBe(1);
       expect(result.errorObj).toEqual(error);
@@ -174,7 +175,7 @@ describe('transformResponse 응답 데이터 변환', () => {
       };
       const mockRequest = Promise.resolve(mockResponse);
 
-      const result = await apiRequest(mockRequest) as any;
+      const result = (await apiRequest(mockRequest)) as any;
 
       expect(result.userId).toBe(1);
       expect(typeof result.userName).toBe('string');
@@ -191,7 +192,7 @@ describe('transformResponse 응답 데이터 변환', () => {
       };
       const mockRequest = Promise.resolve(mockResponse);
 
-      const result = await apiRequest(mockRequest) as any;
+      const result = (await apiRequest(mockRequest)) as any;
 
       expect(result.userId).toBe(1);
       expect(result.optionalField).toBeNull();

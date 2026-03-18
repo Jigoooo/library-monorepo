@@ -3,6 +3,14 @@
   "private": true,
   "type": "module",
   "version": "0.0.1",
+  "homepage": "https://github.com/Jigoooo/library-monorepo",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Jigoooo/library-monorepo.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Jigoooo/library-monorepo/issues"
+  },
   "scripts": {
     "build": "pnpm -r build",
     "dev": "pnpm -r dev",

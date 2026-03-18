@@ -24,6 +24,7 @@ library-monorepo/
 Axios 기반의 완전한 API 클라이언트 라이브러리입니다.
 
 **주요 기능:**
+
 - 🔐 JWT 토큰 자동 갱신
 - 🔄 요청/응답 인터셉팅
 - 🔀 camelCase/snake_case 자동 변환
@@ -31,6 +32,7 @@ Axios 기반의 완전한 API 클라이언트 라이브러리입니다.
 - 🪝 커스텀 훅 (onRequest, onResponse, onError)
 
 **사용 예시:**
+
 ```bash
 npm install @jigoooo/api-client axios qs
 pnpm add @jigoooo/api-client axios qs
@@ -111,11 +113,13 @@ pnpm check
 모노레포에 새로운 라이브러리를 추가하려면:
 
 1. **`packages/` 디렉토리에 새 폴더 생성**
+
    ```bash
    mkdir packages/your-library
    ```
 
 2. **`package.json` 작성**
+
    ```json
    {
      "name": "@jigoooo/your-library",
@@ -142,6 +146,7 @@ pnpm check
 
 3. **TypeScript 설정**
    `tsconfig.json` 생성:
+
    ```json
    {
      "extends": "../../tsconfig.base.json",
@@ -158,6 +163,7 @@ pnpm check
 
 5. **빌드 설정**
    `tsup.config.ts` 생성:
+
    ```typescript
    import { defineConfig } from 'tsup';
 
@@ -194,6 +200,7 @@ cd packages/api-client && npm publish
 ```
 
 **전제 조건:**
+
 - npm 계정과 2FA 설정
 - `packages/[package-name]/.npmrc` 파일 (토큰 설정)
 
@@ -217,6 +224,7 @@ git push origin <tag-name>
 ```
 
 **전략 선택:**
+
 - **현재** (api-client만): `v<version>` 형식 사용 (예: `v0.3.0`)
 - **향후** (다중 패키지): `@<scope>/<package>@<version>` 형식으로 변경 권장
 
@@ -260,6 +268,7 @@ pnpm test:coverage
 ### `tsconfig.base.json`
 
 모든 패키지가 상속하는 공유 TypeScript 설정:
+
 - ES2022 타겟
 - ESNext 모듈
 - 번들러 기반 모듈 해석 (bundler)
@@ -268,12 +277,14 @@ pnpm test:coverage
 ### `vitest.config.ts`
 
 전체 모노레포의 테스트 설정:
+
 - Vitest 러너
 - 자동 모듈 감지
 
 ### `eslint.config.js` / `.prettierrc`
 
 코드 품질 관리:
+
 - TypeScript 린트
 - Prettier 포매팅
 
@@ -288,6 +299,7 @@ description: 한글 설명
 ```
 
 **예시:**
+
 ```
 feat(api-client): JWT 토큰 자동 갱신 기능 추가
 fix(api-client): camelCase 변환 버그 수정
