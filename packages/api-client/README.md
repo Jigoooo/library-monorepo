@@ -45,7 +45,7 @@ initApi({
     return data.accessToken;
   },
   onUnauthorized: () => {
-    window.location.href = '/login';
+    window.location.href = '/';
   },
   transformResponse: 'camelCase', // snake_case → camelCase 자동 변환
 });
@@ -127,7 +127,7 @@ initApi({
 | `baseURL`           | `string`                                    | ✓    | -                               | API 기본 URL                                                    |
 | `getToken`          | `() => string \| null \| undefined`         |      | -                               | 요청마다 호출되는 토큰 getter. 반환값이 있으면 Bearer 헤더 주입 |
 | `refreshTokenFn`    | `() => Promise<string>`                     |      | -                               | 401 발생 시 호출되는 토큰 갱신 함수. 새 토큰을 반환해야 함      |
-| `onUnauthorized`    | `() => void`                                |      | `window.location.href='/login'` | 토큰 갱신 실패 시 호출되는 콜백                                 |
+| `onUnauthorized`    | `() => void`                                |      | `window.location.href='/'` | 토큰 갱신 실패 시 호출되는 콜백                                 |
 | `retryConfig`       | `RetryConfig`                               |      | 아래 참고                       | 재시도 설정 객체                                                |
 | `transformRequest`  | `false \| 'snakeCase' \| (data) => unknown` |      | `false`                         | 요청 데이터 전처리 방식 (camelCase → snake_case 변환 등)        |
 | `transformResponse` | `false \| 'camelCase' \| (data) => unknown` |      | `false`                         | 응답 데이터 전처리 방식 (snake_case → camelCase 변환 등)        |
@@ -508,7 +508,7 @@ const data = await api.get('/users'); // 정상 동작
 
 ### 토큰 갱신 실패 시 처리
 
-`refreshTokenFn`이 throw하거나 `refreshTokenFn` 자체가 설정되지 않은 경우, `onUnauthorized`가 호출됩니다. 기본 동작은 `window.location.href = '/login'`으로 리다이렉트입니다.
+`refreshTokenFn`이 throw하거나 `refreshTokenFn` 자체가 설정되지 않은 경우, `onUnauthorized`가 호출됩니다. 기본 동작은 `window.location.href = '/'`으로 리다이렉트입니다.
 
 커스텀 처리가 필요하면 `onUnauthorized`를 설정하세요:
 
@@ -524,7 +524,7 @@ initApi({
   },
   onUnauthorized: () => {
     store.dispatch(logout()); // 상태 초기화
-    router.replace('/login'); // 라우터로 리다이렉트
+    router.replace('/'); // 라우터로 리다이렉트
   },
 });
 ```

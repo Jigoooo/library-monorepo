@@ -37,7 +37,7 @@ export interface ApiConfig {
    */
   refreshTokenFn?: () => Promise<string>;
 
-  /** refreshTokenFn 실패 또는 미설정 시 콜백. 기본: window.location.href = '/login' */
+  /** refreshTokenFn 실패 또는 미설정 시 콜백. 기본: window.location.href = '/' */
   onUnauthorized?: () => void;
 
   /** retry 관련 세부 설정 */
@@ -70,7 +70,7 @@ export interface ApiConfig {
    * @example
    * shouldSkipAuth: (config) => {
    *   const path = config.url || '';
-   *   return path.startsWith('/auth/') || path === '/login';
+   *   return path.startsWith('/auth/') || path === '/';
    * }
    */
   shouldSkipAuth?: (config: AxiosRequestConfig) => boolean;
