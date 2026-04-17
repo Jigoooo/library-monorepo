@@ -321,5 +321,62 @@ describe('transformResponse 응답 데이터 변환', () => {
 
       expect(result).toBe(123);
     });
+
+    it('응답 데이터가 boolean이면 그대로 반환', async () => {
+      const mockResponse = { data: true };
+      const result = await apiRequest(Promise.resolve(mockResponse));
+      expect(result).toBe(true);
+    });
+
+    it('응답 데이터가 Blob이면 그대로 반환 (responseType: blob 대응)', async () => {
+      const blob = new Blob(['file content'], { type: 'text/plain' });
+      const mockResponse = { data: blob };
+
+      const result = await apiRequest(Promise.resolve(mockResponse));
+
+      expect(result).toBe(blob);
+      expect(result).toBeInstanceOf(Blob);
+    });
+
+    it('응답 데이터가 ArrayBuffer면 그대로 반환 (responseType: arraybuffer 대응)', async () => {
+      const buffer = new ArrayBuffer(16);
+      const mockResponse = { data: buffer };
+
+      const result = await apiRequest(Promise.resolve(mockResponse));
+
+      expect(result).toBe(buffer);
+      expect(result).toBeInstanceOf(ArrayBuffer);
+    });
+
+    it('응답 데이터가 File이면 그대로 반환', async () => {
+      const file = new File(['content'], 'test.txt', { type: 'text/plain' });
+      const mockResponse = { data: file };
+
+      const result = await apiRequest(Promise.resolve(mockResponse));
+
+      expect(result).toBe(file);
+      expect(result).toBeInstanceOf(File);
+    });
+
+    it('응답 데이터가 FormData면 그대로 반환', async () => {
+      const form = new FormData();
+      form.append('userName', 'John');
+      const mockResponse = { data: form };
+
+      const result = await apiRequest(Promise.resolve(mockResponse));
+
+      expect(result).toBe(form);
+      expect(result).toBeInstanceOf(FormData);
+    });
+
+    it('응답 데이터가 URLSearchParams면 그대로 반환', async () => {
+      const params = new URLSearchParams({ userName: 'John' });
+      const mockResponse = { data: params };
+
+      const result = await apiRequest(Promise.resolve(mockResponse));
+
+      expect(result).toBe(params);
+      expect(result).toBeInstanceOf(URLSearchParams);
+    });
   });
 });

@@ -8,7 +8,7 @@ import axios, {
 import qs from 'qs';
 
 import { transformRequestData } from './api-request';
-import { getApiConfig } from './config';
+import { getApiConfig, isApiConfigured } from './config';
 import { logOnDev } from './utils/log';
 
 /**
@@ -61,21 +61,18 @@ const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
  * @param headers - Axios 요청 헤더 객체 (Authorization 헤더 추가에 사용)
  */
 const injectToken = async (headers: AxiosRequestConfig['headers']) => {
-  try {
-    const { refreshTokenFn, retryConfig } = getApiConfig();
-    if (!retryConfig?.isTokenExpired?.()) return;
+  if (!isApiConfigured()) return;
 
-    try {
-      const newToken = await refreshTokenFn?.();
-      if (newToken && headers) {
-        headers.Authorization = `Bearer ${newToken}`;
-      }
-    } catch {
-      const { onUnauthorized } = getApiConfig();
-      onUnauthorized?.();
+  const { refreshTokenFn, retryConfig, onUnauthorized } = getApiConfig();
+  if (!retryConfig?.isTokenExpired?.()) return;
+
+  try {
+    const newToken = await refreshTokenFn?.();
+    if (newToken && headers) {
+      headers.Authorization = `Bearer ${newToken}`;
     }
   } catch {
-    // config 미설정 시 무시
+    onUnauthorized?.();
   }
 };
 
@@ -88,20 +85,18 @@ const injectToken = async (headers: AxiosRequestConfig['headers']) => {
  * @param headers - Axios 요청 헤더 객체 (Authorization 헤더 추가에 사용)
  */
 const applyToken = (config: AxiosRequestConfig, headers: AxiosRequestConfig['headers']) => {
-  try {
-    const { getToken, shouldSkipAuth } = getApiConfig();
+  if (!isApiConfigured()) return;
 
-    // shouldSkipAuth 함수로 인증 건너뛰기 여부 확인
-    if (shouldSkipAuth?.(config)) {
-      return;
-    }
+  const { getToken, shouldSkipAuth } = getApiConfig();
 
-    const token = getToken?.();
-    if (token && headers) {
-      headers.Authorization = `Bearer ${token}`;
-    }
-  } catch {
-    // config 미설정 또는 토큰 없음 무시
+  // shouldSkipAuth 함수로 인증 건너뛰기 여부 확인
+  if (shouldSkipAuth?.(config)) {
+    return;
+  }
+
+  const token = getToken?.();
+  if (token && headers) {
+    headers.Authorization = `Bearer ${token}`;
   }
 };
 
@@ -142,13 +137,11 @@ const onRequest = async (config: AxiosRequestConfig): Promise<InternalAxiosReque
   logOnDev(`onRequest [API] ${method?.toUpperCase()} ${fullUrl} | Request`);
 
   // ── 사용자 훅 (토큰 주입 이후)
-  try {
+  if (isApiConfigured()) {
     const { onRequest: userHook } = getApiConfig();
     if (userHook) {
       return await userHook({ ...config } as InternalAxiosRequestConfig);
     }
-  } catch {
-    // 훅 미설정 무시
   }
 
   return { ...config } as InternalAxiosRequestConfig;
@@ -182,13 +175,11 @@ const onErrorRequest = async (error: AxiosError<AxiosRequestConfig>) => {
   logRequestError(error);
 
   // ── 사용자 훅
-  try {
+  if (isApiConfigured()) {
     const { onErrorRequest: userHook } = getApiConfig();
     if (userHook) {
       await userHook(error);
     }
-  } catch {
-    // 훅 미설정 무시
   }
 
   throw error;
@@ -208,13 +199,11 @@ const onResponse = async (response: AxiosResponse): Promise<AxiosResponse> => {
   // ── 내장: 로깅
   logOnDev(`onResponse [API] ${method?.toUpperCase()} ${url} | Request ${status}`);
 
-  try {
+  if (isApiConfigured()) {
     const { onResponse: userHook } = getApiConfig();
     if (userHook) {
       return await userHook(response);
     }
-  } catch {
-    // 사용자 훅이 없거나 에러 발생시 무시
   }
 
   return response;
@@ -467,13 +456,11 @@ const onErrorResponse = async (error: AxiosError | Error) => {
   }
 
   // ── 사용자 훅 (401 해결된 경우는 여기 도달하지 않음)
-  try {
+  if (isApiConfigured()) {
     const { onErrorResponse: userHook } = getApiConfig();
     if (userHook) {
       await userHook(error);
     }
-  } catch {
-    // 훅 미설정 무시
   }
 
   throw error;

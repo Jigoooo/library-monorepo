@@ -4,50 +4,57 @@ import { apiRequest, transformRequestData } from './api-request';
 import { customedAxios } from './customed-axios';
 
 /**
- * HTTP 요청 메서드 인터페이스
- * 모든 응답은 apiRequest()를 통해 transformResponse 처리됩니다.
+ * HTTP 요청 메서드 인터페이스.
+ *
+ * 요청 변환(transformRequest):
+ * - POST/PUT/PATCH의 `data`(request body)는 호출 시 transformRequest 규칙으로 변환됩니다.
+ * - 모든 메서드의 `config.params`(query params)는 인터셉터에서 동일 규칙으로 변환됩니다.
+ * - FormData/File/Blob/ArrayBuffer/URLSearchParams/Date/Map/Set/RegExp/Error/원시값은 변환되지 않습니다.
+ *
+ * 응답 변환(transformResponse):
+ * - 모든 메서드 응답은 apiRequest()를 통해 transformResponse 규칙으로 변환됩니다.
  */
 export interface ApiInstance {
   /**
    * GET 요청
-   * @param url 요청 경로
-   * @param config Axios 설정
-   * @returns 변환된 응답 데이터
+   * @param url 요청 경로 (baseURL에 결합)
+   * @param config Axios 설정. `config.params`는 transformRequest 규칙으로 변환됩니다.
+   * @returns transformResponse가 적용된 응답 데이터
    */
   get(url: string, config?: AxiosRequestConfig): Promise<unknown>;
 
   /**
    * POST 요청
-   * @param url 요청 경로
-   * @param data 요청 바디
-   * @param config Axios 설정
-   * @returns 변환된 응답 데이터
+   * @param url 요청 경로 (baseURL에 결합)
+   * @param data 요청 바디. transformRequest 규칙으로 변환됩니다.
+   * @param config Axios 설정. `config.params`도 동일 규칙으로 변환됩니다.
+   * @returns transformResponse가 적용된 응답 데이터
    */
   post(url: string, data?: unknown, config?: AxiosRequestConfig): Promise<unknown>;
 
   /**
    * PUT 요청
-   * @param url 요청 경로
-   * @param data 요청 바디
-   * @param config Axios 설정
-   * @returns 변환된 응답 데이터
+   * @param url 요청 경로 (baseURL에 결합)
+   * @param data 요청 바디. transformRequest 규칙으로 변환됩니다.
+   * @param config Axios 설정. `config.params`도 동일 규칙으로 변환됩니다.
+   * @returns transformResponse가 적용된 응답 데이터
    */
   put(url: string, data?: unknown, config?: AxiosRequestConfig): Promise<unknown>;
 
   /**
    * PATCH 요청
-   * @param url 요청 경로
-   * @param data 요청 바디
-   * @param config Axios 설정
-   * @returns 변환된 응답 데이터
+   * @param url 요청 경로 (baseURL에 결합)
+   * @param data 요청 바디. transformRequest 규칙으로 변환됩니다.
+   * @param config Axios 설정. `config.params`도 동일 규칙으로 변환됩니다.
+   * @returns transformResponse가 적용된 응답 데이터
    */
   patch(url: string, data?: unknown, config?: AxiosRequestConfig): Promise<unknown>;
 
   /**
    * DELETE 요청
-   * @param url 요청 경로
-   * @param config Axios 설정
-   * @returns 변환된 응답 데이터
+   * @param url 요청 경로 (baseURL에 결합)
+   * @param config Axios 설정. `config.params`는 transformRequest 규칙으로 변환됩니다.
+   * @returns transformResponse가 적용된 응답 데이터
    */
   delete(url: string, config?: AxiosRequestConfig): Promise<unknown>;
 }

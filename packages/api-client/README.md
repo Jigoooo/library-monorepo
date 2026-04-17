@@ -122,20 +122,21 @@ initApi({
 
 ## ApiConfig 옵션 전체
 
-| 옵션                | 타입                                        | 필수 | 기본값    | 설명                                                            |
-| ------------------- | ------------------------------------------- | ---- | --------- | --------------------------------------------------------------- |
-| `baseURL`           | `string`                                    | ✓    | -         | API 기본 URL                                                    |
-| `getToken`          | `() => string \| null \| undefined`         |      | -         | 요청마다 호출되는 토큰 getter. 반환값이 있으면 Bearer 헤더 주입 |
-| `refreshTokenFn`    | `() => Promise<string>`                     |      | -         | 401 발생 시 호출되는 토큰 갱신 함수. 새 토큰을 반환해야 함      |
-| `onUnauthorized`    | `() => void`                                |      | -         | 토큰 갱신 실패 시 호출되는 콜백. 미설정 시 아무 동작도 없음     |
-| `retryConfig`       | `RetryConfig`                               |      | 아래 참고 | 재시도 설정 객체                                                |
-| `transformRequest`  | `false \| 'snakeCase' \| (data) => unknown` |      | `false`   | 요청 데이터 전처리 방식 (camelCase → snake_case 변환 등)        |
-| `transformResponse` | `false \| 'camelCase' \| (data) => unknown` |      | `false`   | 응답 데이터 전처리 방식 (snake_case → camelCase 변환 등)        |
-| `onRequest`         | `(config) => InternalAxiosRequestConfig`    |      | -         | 토큰 주입 이후 실행되는 요청 훅. config 수정 가능               |
-| `onResponse`        | `(response) => AxiosResponse`               |      | -         | 응답 후 실행되는 훅. response 수정 가능                         |
-| `onErrorRequest`    | `(error: AxiosError) => void`               |      | -         | 요청 에러 시 내장 로깅 이후 추가 처리                           |
-| `onErrorResponse`   | `(error: AxiosError \| Error) => void`      |      | -         | 응답 에러 시 내장 401 처리 이후 추가 처리                       |
-| `axiosOptions`      | `AxiosRequestConfig`                        |      | -         | axios.create()에 전달할 추가 옵션 (baseURL 제외)                |
+| 옵션                | 타입                                        | 필수 | 기본값    | 설명                                                              |
+| ------------------- | ------------------------------------------- | ---- | --------- | ----------------------------------------------------------------- |
+| `baseURL`           | `string`                                    | ✓    | -         | API 기본 URL                                                      |
+| `getToken`          | `() => string \| null \| undefined`         |      | -         | 요청마다 호출되는 토큰 getter. 반환값이 있으면 Bearer 헤더 주입   |
+| `refreshTokenFn`    | `() => Promise<string>`                     |      | -         | 401 발생 시 호출되는 토큰 갱신 함수. 새 토큰을 반환해야 함        |
+| `onUnauthorized`    | `() => void`                                |      | -         | 토큰 갱신 실패 시 호출되는 콜백. 미설정 시 아무 동작도 없음       |
+| `retryConfig`       | `RetryConfig`                               |      | 아래 참고 | 재시도 설정 객체                                                  |
+| `transformRequest`  | `false \| 'snakeCase' \| (data) => unknown` |      | `false`   | request body + query params 전처리 (아래 "요청 데이터 변환" 참고) |
+| `transformResponse` | `false \| 'camelCase' \| (data) => unknown` |      | `false`   | 응답 데이터 전처리 방식 (snake_case → camelCase 변환 등)          |
+| `shouldSkipAuth`    | `(config) => boolean`                       |      | -         | true 반환 시 Authorization 헤더 주입 생략 (로그인/회원가입 등)    |
+| `onRequest`         | `(config) => InternalAxiosRequestConfig`    |      | -         | 토큰 주입 이후 실행되는 요청 훅. config 수정 가능                 |
+| `onResponse`        | `(response) => AxiosResponse`               |      | -         | 응답 후 실행되는 훅. response 수정 가능                           |
+| `onErrorRequest`    | `(error: AxiosError) => void`               |      | -         | 요청 에러 시 내장 로깅 이후 추가 처리                             |
+| `onErrorResponse`   | `(error: AxiosError \| Error) => void`      |      | -         | 응답 에러 시 내장 401 처리 이후 추가 처리                         |
+| `axiosOptions`      | `AxiosRequestConfig`                        |      | -         | axios.create()에 전달할 추가 옵션 (baseURL 제외)                  |
 
 ## RetryConfig 옵션
 
@@ -234,9 +235,31 @@ function createApiWrapper(client: ApiInstance) {
 
 ## 고급 기능
 
+### 인증 건너뛰기 (`shouldSkipAuth`)
+
+로그인, 회원가입, 공개 엔드포인트 등 **Authorization 헤더가 필요 없는 요청**을 위한 훅입니다. `true`를 반환하면 해당 요청에 `getToken()` 호출과 Bearer 헤더 주입을 건너뜁니다.
+
+```typescript
+initApi({
+  baseURL: 'https://api.example.com',
+  getToken: () => localStorage.getItem('accessToken'),
+  shouldSkipAuth: (config) => {
+    const path = config.url ?? '';
+    return path.startsWith('/auth/') || path === '/public';
+  },
+});
+
+await api.post('/auth/login', { email, password }); // Authorization 헤더 없이 전송
+await api.get('/users/me'); // Authorization: Bearer ... 주입
+```
+
+> **주의**: 선제적 토큰 갱신(`isTokenExpired`)은 `shouldSkipAuth`와 독립적으로 동작합니다. 완전히 인증 로직을 우회하고 싶다면 `isTokenExpired`도 해당 요청에서 `false`를 반환하도록 구성하세요.
+
 ### 요청 인터셉팅
 
 `onRequest` 훅은 토큰 주입 이후에 실행됩니다. `config`를 반환해야 하며 `Promise`도 허용합니다.
+
+이 시점의 `config.params`는 이미 `transformRequest` 규칙이 적용된 상태입니다. 원형 params가 필요하면 `api.get(url, { params })` 호출 측에서 별도 보관하세요.
 
 ```typescript
 initApi({
@@ -278,7 +301,7 @@ initApi({
   │    ├─ isRefreshing = true
   │    ├─ refreshTokenFn() 호출 (maxRetries 횟수만큼 재시도)
   │    ├─ 성공: 대기열의 모든 요청에 새 토큰 전달 → 재전송
-  │    └─ 실패: 대기열 전체 reject → onUnauthorized() 호출
+  │    └─ 실패: onUnauthorized() 호출 → 대기열 전체 reject → 원 요청도 reject
   │
   └─ isRefreshing === true (동시 401 발생)
        ├─ failedQueue에 추가 (최대 maxQueueSize)
@@ -302,19 +325,35 @@ initApi({
 });
 ```
 
+**동작 세부 사항**:
+
+- **선제 갱신 실패 시**: `refreshTokenFn`이 throw하면 `onUnauthorized`가 호출되고, **원 요청은 기존 토큰으로 그대로 진행**됩니다 (이후 401을 받으면 표준 재시도 경로를 탑니다).
+- **401 갱신 실패 시**: `refreshTokenFn`이 `maxRetries`만큼 모두 실패하면 `onUnauthorized` 호출 후, **원 요청과 대기열의 모든 요청이 reject**됩니다.
+- **401 재시도 요청**: 갱신된 토큰으로 재전송할 때는 **전역 `axios`로 실행**되어 라이브러리의 인터셉터를 다시 타지 않습니다 (params/body 변환과 baseURL은 이미 원요청에서 적용됨).
+- **`maxQueueSize` 초과**: 동시 401이 대기열 크기를 넘으면 해당 요청은 즉시 원 에러로 reject됩니다.
+
 ### 요청 데이터 변환
 
-`transformRequest`를 설정하면 POST, PUT, PATCH 요청 시 데이터를 자동으로 변환합니다.
+`transformRequest`는 **request body**와 **query params(`config.params`)** 양쪽에 동일한 규칙으로 적용됩니다.
+
+적용 범위:
+
+- **body**: POST / PUT / PATCH의 두 번째 인자 (`data`)
+- **query params**: 모든 메서드(GET / POST / PUT / PATCH / DELETE)의 `config.params`
 
 ```typescript
 initApi({
   baseURL: 'https://api.example.com',
-  transformRequest: 'snakeCase', // camelCase를 snake_case로 변환
+  transformRequest: 'snakeCase', // camelCase → snake_case
 });
 
-// 요청 데이터: { userId: 1, userName: 'John' }
+// body 변환
 await api.post('/users', { userId: 1, userName: 'John' });
 // 실제 전송: { user_id: 1, user_name: 'John' }
+
+// query params 변환
+await api.get('/users', { params: { pageSize: 20, sortBy: 'createdAt' } });
+// 실제 요청: GET /users?page_size=20&sort_by=created_at
 ```
 
 중첩 객체와 배열도 동일하게 처리됩니다:
@@ -349,17 +388,17 @@ await api.post('/users', data);
 }
 ```
 
-커스텀 변환 함수도 지원합니다:
+커스텀 변환 함수도 지원합니다. 이 함수 역시 **body와 params 양쪽 모두에 적용**되므로, params 구조에도 안전하게 동작해야 합니다:
 
 ```typescript
 initApi({
   baseURL: 'https://api.example.com',
   transformRequest: (data) => {
-    // 커스텀 변환 로직
-    if (typeof data === 'object' && data !== null) {
+    // 커스텀 변환 로직 (body와 params 모두에 호출됨)
+    if (typeof data === 'object' && data !== null && !Array.isArray(data)) {
       return {
         ...data,
-        timestamp: new Date().toISOString(), // 모든 요청에 타임스탐프 추가
+        timestamp: new Date().toISOString(),
       };
     }
     return data;
@@ -367,13 +406,45 @@ initApi({
 });
 ```
 
-Date, Map, Set 등의 특수 객체는 자동으로 보존됩니다:
+#### 변환에서 제외되는 특수 타입
+
+다음 타입은 `transformRequest` 설정과 무관하게 **그대로 전달**됩니다. 파일 업로드나 특수 객체 전송 시 안전합니다.
+
+- **이진/파일**: `FormData`, `File`, `Blob`, `ArrayBuffer`
+- **URL 인코딩**: `URLSearchParams`
+- **내장 객체**: `Date`, `Map`, `Set`, `RegExp`, `Error`
+- **원시값**: `string`, `number`, `boolean`
+- **빈 값**: `null`, `undefined`
 
 ```typescript
+// FormData는 변환되지 않음
+const form = new FormData();
+form.append('userName', 'John');
+await api.post('/upload', form); // 'userName' 그대로 유지
+
+// 중첩된 Date/Map도 그대로 보존
 await api.post('/events', {
   eventName: 'Conference',
-  eventDate: new Date('2024-06-15'), // 그대로 유지됨
-  metadata: new Map([['key', 'value']]), // 그대로 유지됨
+  eventDate: new Date('2024-06-15'),
+  metadata: new Map([['key', 'value']]),
+});
+```
+
+#### body와 params를 다르게 변환하고 싶다면
+
+설정은 하나의 규칙을 공유합니다. 서로 다른 규칙이 필요하면 `onRequest` 훅에서 `config.params`를 직접 조작하세요.
+
+```typescript
+initApi({
+  baseURL: 'https://api.example.com',
+  transformRequest: 'snakeCase', // body와 params 모두 snake_case
+  onRequest: (config) => {
+    // 특정 요청만 params 원형 유지
+    if (config.url?.startsWith('/legacy/')) {
+      config.params = originalParamsMap.get(config.url);
+    }
+    return config;
+  },
 });
 ```
 
@@ -411,6 +482,8 @@ const users = await api.get('/users');
   ├─ 3. 에러 로깅 (status, url, method, response data)
   └─ 4. onErrorResponse 사용자 훅 실행 → 에러 throw
 ```
+
+> **훅 내부 throw**: `onRequest`/`onErrorRequest`/`onResponse`/`onErrorResponse` 훅 내부에서 throw한 에러는 **원 에러를 대체하여 전파**됩니다 (axios의 promise chain으로 정상 reject). 훅에서 fallback 값을 반환하거나 요청을 중단하려면 throw 대신 그에 맞는 값을 return하세요.
 
 `onErrorResponse`에서 에러를 분류하여 처리하는 예시:
 
@@ -458,10 +531,35 @@ try {
    - `Content-Type: application/json;charset=UTF-8`
    - `accept: application/json`
    - `responseType: json`
-   - `timeout: 120,000ms` (2분, axiosOptions.timeout으로 재정의 가능)
-   - 배열 파라미터를 반복 키로 직렬화하는 커스텀 `paramsSerializer` (`?ids=1&ids=2`)
+   - `timeout: 120,000ms` (2분, `axiosOptions.timeout`으로 재정의 가능)
+   - 배열 파라미터를 반복 키로 직렬화하는 커스텀 `paramsSerializer` (`?ids=1&ids=2`). `axiosOptions.paramsSerializer`를 지정하면 **완전히 교체**됩니다.
 3. `interceptors(instance)` — 요청/응답 인터셉터 등록
 4. `setAxiosInstance(instance)` — 생성된 인스턴스를 모듈 스코프 변수에 저장
+
+### paramsSerializer 교체
+
+기본 동작을 바꾸고 싶을 때 `axiosOptions.paramsSerializer`를 지정합니다.
+
+```typescript
+import qs from 'qs';
+
+initApi({
+  baseURL: 'https://api.example.com',
+  axiosOptions: {
+    // 예: 배열을 ids[]=1&ids[]=2 형태로 직렬화
+    paramsSerializer: (params) => qs.stringify(params, { arrayFormat: 'brackets' }),
+  },
+});
+```
+
+### 내장 로깅
+
+요청/응답/에러 흐름에서 라이브러리가 남기는 내장 로그는 **`process.env.NODE_ENV !== 'production'`에서만** `console.log`로 출력됩니다. 프로덕션 빌드에서는 조용히 동작하므로 안전합니다.
+
+- 로깅 대상: 요청 URL·메서드, 응답 상태, Axios 에러 요약(상태·URL·메서드·data·응답data)
+- base64 인코딩 문자열/긴 문자열은 자동으로 축약되어 로그 가독성을 유지합니다.
+
+> **로그 URL vs 실제 요청 URL**: 개발 로그에 출력되는 GET 요청의 전체 URL은 `qs.stringify`(배열은 `ids[]=1&ids[]=2` 형태)로 조립됩니다. 실제 요청은 기본 `paramsSerializer`(또는 사용자가 지정한 것)를 사용하므로, 배열이 포함된 params는 **로그의 URL과 실제 URL이 다르게 보일 수 있습니다**. 실제 네트워크 호출은 브라우저 DevTools로 확인하세요.
 
 ### 싱글턴 패턴
 
@@ -624,9 +722,26 @@ const data = await api.get('/users', { signal: controller.signal });
 controller.abort();
 ```
 
-## 기타 내보내기
+## Public API vs Internal API
 
-현재 customedAxios와 apiRequest는 내부 API로 직접 export되지 않습니다. 대신 index.ts에서 export되는 public API (initApi, api, isApiConfigured 등)를 사용하세요.
+### Public API (엔트리포인트에서 접근 가능)
+
+`@jigoooo/api-client`에서 바로 import할 수 있는 공식 API입니다.
+
+- 함수: `initApi`, `isApiConfigured`
+- 객체: `api`
+- 타입: `ApiConfig`, `ApiInstance`, `RetryConfig`
+
+### Internal API (외부 사용 비권장)
+
+아래 심볼들은 소스 파일에서 `export`되어 있지만 **패키지 엔트리포인트에서 re-export되지 않습니다**. `package.json`의 `exports` 필드가 루트 엔트리(`.`)만 공개하므로 외부에서 import할 수 없습니다. 테스트나 내부 확장 용도로만 존재합니다.
+
+- `src/config.ts`: `setApiConfig`, `setAxiosInstance`, `getApiConfig`, `getAxiosInstance`
+- `src/customed-axios.ts`: `customedAxios` (Proxy 기반 지연 참조 객체)
+- `src/api-request.ts`: `apiRequest`, `transformRequestData`
+- `src/interceptors.ts`: `interceptors`
+
+이들의 시그니처는 **명시적 공지 없이 변경될 수 있습니다**. 외부에서 직접 참조하지 마세요.
 
 ## 라이선스
 

@@ -48,9 +48,17 @@ export interface ApiConfig {
 
   /**
    * 요청 데이터 전처리.
+   * POST/PUT/PATCH의 **request body**와 모든 메서드의 **query params(config.params)** 양쪽에 동일하게 적용됩니다.
+   *
    * - undefined 또는 false(기본): 변환 없음
-   * - 'snakeCase': deepSnakelize 적용 (camelCase → snake_case)
+   * - 'snakeCase': deepSnakeCase 적용 (camelCase → snake_case)
    * - 함수: 해당 함수로 변환
+   *
+   * 다음 타입은 변환되지 않고 그대로 유지됩니다:
+   * FormData, File, Blob, ArrayBuffer, URLSearchParams,
+   * Date, Map, Set, RegExp, Error, 원시값, null/undefined.
+   *
+   * body/params에 다른 변환 규칙을 적용하고 싶다면 onRequest 훅에서 config.params를 직접 조작하세요.
    */
   transformRequest?: false | 'snakeCase' | ((data: unknown) => unknown);
 
@@ -64,10 +72,12 @@ export interface ApiConfig {
 
   /**
    * 요청에서 인증 헤더를 건너뛸지 결정하는 함수.
-   * true 반환 시 Authorization 헤더를 추가하지 않습니다.
-   * 로그인, 회원가입 등 인증이 필요 없는 요청에 사용합니다.
+   * true 반환 시 getToken() 호출 및 Authorization 헤더 주입을 건너뜁니다.
+   * 로그인, 회원가입, 공개 엔드포인트 등 인증이 필요 없는 요청에 사용합니다.
    *
-   * @param config 요청 설정 객체
+   * 주의: isTokenExpired 기반 선제 refresh는 이 플래그와 무관하게 동작합니다.
+   *
+   * @param config 요청 설정 객체 (url, method, headers 등 조회 가능)
    * @returns true면 인증 헤더 생략, false면 포함
    *
    * @example

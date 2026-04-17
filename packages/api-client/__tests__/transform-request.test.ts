@@ -288,7 +288,7 @@ describe('transformRequest - 요청 데이터 변환', () => {
 
       // 객체의 키는 변환되고, Date 값은 유지됨
       expect(result).toHaveProperty('created_at');
-      expect(result.created_at instanceof Date).toBe(true);
+      expect((result as any).created_at instanceof Date).toBe(true);
       expect((result as any).created_at.getTime()).toBe(date.getTime());
     });
 
