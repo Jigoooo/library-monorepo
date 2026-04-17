@@ -7,6 +7,7 @@ import axios, {
 } from 'axios';
 import qs from 'qs';
 
+import { transformRequestData } from './api-request';
 import { getApiConfig } from './config';
 import { logOnDev } from './utils/log';
 
@@ -121,7 +122,7 @@ const onRequest = async (config: AxiosRequestConfig): Promise<InternalAxiosReque
   }
 
   if (params) {
-    config.params = params;
+    config.params = transformRequestData(params);
   }
 
   // ── 내장: 현재 토큰 주입 (먼저 적용)

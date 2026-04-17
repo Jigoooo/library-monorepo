@@ -1,6 +1,6 @@
 {
   "name": "@jigoooo/api-client",
-  "version": "0.2.5",
+  "version": "0.2.6",
   "description": "Axios 기반 API 클라이언트 — 토큰 갱신, 401 재시도, camelCase/snakeCase 변환 지원",
   "keywords": [
     "axios",
