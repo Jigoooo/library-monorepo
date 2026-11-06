@@ -4,3 +4,7 @@ coverage/
 dist/
 
 .npmrc
+
+# Local macOS and assistant workspace files
+.DS_Store
+.serena/
